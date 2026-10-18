@@ -8,6 +8,7 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createChatHandler } from "./chat.mjs";
 import { createAgents } from "./agents.mjs";
+import { prioritizeForm } from "./conversation.mjs";
 
 const WEB = fileURLToPath(new URL(".", import.meta.url));
 const PORT = Number(process.env.PORT || 8787);
@@ -161,10 +162,13 @@ async function draftAnswers(req, res) {
 // Bolna keeps the transcript on the call's execution record; normalise it to [{role, text}].
 function parseTranscript(raw) {
   if (Array.isArray(raw)) {
-    return raw.map((t) => ({
-      role: /user|human|caller/i.test(t.role || t.speaker || "") ? "user" : "agent",
-      text: String(t.content ?? t.text ?? t.message ?? "").trim(),
-    })).filter((t) => t.text);
+    return raw.flatMap((t) => {
+      const role = String(t.role || t.speaker || "").toLowerCase();
+      if (!/^(user|human|caller|applicant|assistant|agent|bot|ai|maya)$/.test(role)) return [];
+      const content = t.content ?? t.text ?? t.message;
+      if (typeof content !== "string" || !content.trim()) return [];
+      return [{ role: /^(user|human|caller|applicant)$/.test(role) ? "user" : "agent", text: content.trim() }];
+    });
   }
   const turns = [];
   for (const line of String(raw || "").split(/\n+/)) {
@@ -188,14 +192,13 @@ async function transcript(req, res) {
   if (!r.ok) return res.writeHead(r.status, { "Content-Type": "application/json" }).end(JSON.stringify({ ok: false, status: "unavailable" }));
   const ex = await r.json();
   const turns = parseTranscript(ex.transcript ?? ex.conversation ?? ex.messages);
+  let saved = false;
   if (code && turns.length) {
-    await fetch(SUPABASE_RPC + "iv_save_call", {
-      method: "POST",
-      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
-      body: JSON.stringify({ p_code: code, p_run_id: runId, p_status: ex.status || null, p_transcript: turns }),
-    }).catch(() => {});
+    const result = await callRpc("iv_save_call", { p_code: code, p_run_id: runId, p_status: ex.status || null, p_transcript: turns });
+    if (result?.ok === false) throw new Error(result.error || "Could not save the call transcript.");
+    saved = true;
   }
-  res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ ok: true, status: ex.status || null, transcript: turns }));
+  sendJson(res, 200, { ok: true, saved, status: ex.status || null, transcript: turns });
 }
 
 export async function handler(req, res) {
@@ -213,6 +216,16 @@ export async function handler(req, res) {
     if (req.method === "POST" && req.url === "/chat") return await chatMessage(req, res);
     if (req.method === "POST" && req.url === "/analyze") return sendJson(res, 200, await agents.analyze(await jsonBody(req)));
     if (req.method === "POST" && req.url === "/voice-turn") return sendJson(res, 200, await agents.analyze(await jsonBody(req)));
+    if (req.method === "POST" && req.url === "/form-state") {
+      const body = await jsonBody(req);
+      const code = String(body.code || "").trim().toUpperCase();
+      if (!/^[A-Z0-9]{6}$/.test(code)) return sendJson(res, 400, { ok: false, error: "Invalid application code." });
+      const state = prioritizeForm(await callWebhook({ action: "get_current", code }));
+      if (!state.ok) return sendJson(res, 400, state);
+      delete state.current;
+      state.next_step = "Resume drafts are already filled; do not ask for those details again. Focus on form.still_needed, especially role questions. Check drafts only after the remaining questions, before final approval.";
+      return sendJson(res, 200, state);
+    }
     if (req.method === "GET" && req.url.startsWith("/transcript")) return await transcript(req, res);
     if (req.method === "GET" && req.url === "/health") return res.writeHead(200, { "Content-Type": "application/json" }).end('{"ok":true}');
     if (req.method !== "GET") return sendJson(res, 405, { ok: false, error: "Method not allowed." });

@@ -102,11 +102,6 @@
   .turn.from-user { justify-self: end; text-align: right; }
   .turn.from-user p { background: var(--now-wash); color: var(--ink); border-top-right-radius: 4px; text-align: left; }
   .conv-note { margin: 0; font-size: 14px; color: var(--graphite); text-align: center; }
-  .captured { background: var(--sheet); border: 1px solid var(--rule-soft); border-radius: 10px; padding: 14px 16px; }
-  .captured h3 { margin: 0 0 8px; font-size: 14px; color: var(--graphite); font-weight: 600; }
-  .captured ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
-  .captured li { display: flex; justify-content: space-between; gap: 12px; }
-  .captured time { color: var(--graphite); font-variant-numeric: tabular-nums; flex: none; }
   .conv-empty { text-align: center; color: var(--graphite); padding: 36px 12px; display: grid; gap: 6px; }
   .conv-empty strong { color: var(--ink); font-size: 18px; }
   .chat-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-top: 20px; }
@@ -513,7 +508,30 @@
     if (state === "active") { await call?.stop(); return; }
     if (state === "connecting" || state === "ringing") return;
     if (chatBusy) { showCallError("Wait for Maya's text reply before switching to voice."); return; }
+    if (reading || profileMode === "building") { showCallError("Please wait until the form and resume are ready."); return; }
     if (!window.BolnaWebCall) { showCallError("The voice library did not load. Check your connection and reload."); return; }
+
+    if (code) {
+      try {
+        const [freshView, calls] = await Promise.all([rpc("iv_get_view", { p_code: code }), rpc("iv_get_calls", { p_code: code })]);
+        if (!freshView.ok || !Array.isArray(calls)) throw new Error("Could not load the application and conversation.");
+        savedCalls = calls; callsFor = code;
+        if (profileKey && !freshView.profile_key && !["approved", "cancelled", "failed"].includes(freshView.status)) {
+          if (!(await attachProfile(code))) await attachProfile(code, true);
+          const attached = await rpc("iv_get_view", { p_code: code });
+          if (!attached.ok || !attached.profile_key) throw new Error("Could not attach your resume to the application.");
+          Object.assign(freshView, attached);
+        }
+        if (freshView.profile_key && freshView.status === "collecting") {
+          const result = await readJson(await fetch("/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code }) }));
+          if (!result.ok) throw new Error(result.error || "Could not fill the form from your resume.");
+          const draftedView = await rpc("iv_get_view", { p_code: code });
+          if (!draftedView.ok) throw new Error("Could not refresh the filled form.");
+          Object.assign(freshView, draftedView);
+        }
+        render(freshView);
+      } catch (error) { showCallError(error.message || "Could not load the saved application."); return; }
+    }
 
     // A fresh reference per call lets the page find a session the call creates.
     // If a session is already open, the agent gets its code and picks up from there.
@@ -534,7 +552,7 @@
     });
     call.on("state-change", (st) => {
       setCallState(st);
-      if (st === "ended") { liveUntil = Date.now() + 90000; pollTranscript(); }
+      if (st === "ended") { liveUntil = Date.now() + 300000; pollTranscript(); }
     });
     call.on("call-start", () => {
       liveRunId = call.getRunId && call.getRunId();
@@ -655,10 +673,13 @@
 
   function buildVoiceContext() {
     const turns = [...savedCalls].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
-      .flatMap((c) => Array.isArray(c.transcript) ? c.transcript : []).slice(-20)
-      .map((t) => `${t.role === "user" ? "Applicant" : "Maya"}: ${String(t.text || "").slice(0, 800)}`);
-    const view = lastView && lastView.code === code ? { status: lastView.status, revision: lastView.revision, fields: lastView.fields } : null;
-    return JSON.stringify({ conversation: turns, form: view }).slice(0, 12000);
+      .flatMap((c) => Array.isArray(c.transcript) ? c.transcript : [])
+      .filter((t) => ["user", "agent", "assistant"].includes(t.role) && typeof t.text === "string" && t.text.trim())
+      .map((t) => ({ role: t.role === "user" ? "applicant" : "maya", text: t.text }));
+    const view = lastView && lastView.code === code ? lastView : null;
+    const fields = (view?.fields || []).map((f) => ({ field_id: f.field_id, label: f.label, type: f.type, status: f.status, answer: f.answer, draft: f.draft, hint: f.missing_info, options: f.options }));
+    const form = view ? { status: view.status, revision: view.revision, from_resume: fields.filter((f) => f.status === "drafted" && f.draft), done: fields.filter((f) => ["confirmed", "revised", "skipped"].includes(f.status)), still_needed: fields.filter((f) => f.status === "pending") } : null;
+    return JSON.stringify({ form, conversation: turns });
   }
 
   async function loadCalls() {
@@ -709,17 +730,19 @@
     }
   });
 
+  let transcriptBusy = false;
   async function pollTranscript() {
-    if (!liveRunId || Date.now() > liveUntil) return;
+    if (!liveRunId || Date.now() > liveUntil || transcriptBusy) return;
+    transcriptBusy = true;
     try {
       const r = await fetch(`/transcript?run_id=${encodeURIComponent(liveRunId)}&code=${encodeURIComponent(liveCallCode || "")}`);
       const d = await readJson(r);
       if (d.ok && Array.isArray(d.transcript)) {
         if (d.transcript.length >= liveTurns.length) liveTurns = d.transcript;
-        if (d.status === "completed" && callBtn.dataset.state !== "active") { liveUntil = 0; await loadCalls(); }
+        if (d.status === "completed" && d.saved && callBtn.dataset.state !== "active") { liveUntil = 0; await loadCalls(); }
         renderConv();
       }
-    } catch {}
+    } catch {} finally { transcriptBusy = false; }
   }
   setInterval(pollTranscript, 3000);
 
@@ -748,15 +771,7 @@
     if (liveRunId) {
       html += `<div class="call-sep">${liveActive ? '<span class="live">Live now</span>' : "This call"}</div>`;
       html += live.length ? turnsHtml(live)
-        : `<p class="conv-note">${liveActive ? "Maya is listening. The words appear here as Bolna records them; the full transcript is always saved when the call ends." : "Fetching the transcript of this call…"}</p>`;
-    }
-    const events = (lastView && lastView.events) || [];
-    if (events.length) {
-      html += `<section class="captured"><h3>Saved to your application</h3><ol>${events.slice(0, 6).map((e) => {
-        const t = new Date(e.at);
-        const hhmm = isNaN(t) ? "" : t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        return `<li><span>${esc(describe(e, lastView.fields || []))}</span><time>${esc(hhmm)}</time></li>`;
-      }).join("")}</ol></section>`;
+        : `<p class="conv-note">${liveActive ? "Maya is listening. The words appear here as Bolna records them." : "Fetching the transcript of this call…"}</p>`;
     }
     if (!html) {
       html = `<div class="conv-empty"><strong>Chat with Maya</strong><span>Open an application, then type below or switch to voice.</span></div>`;
@@ -776,7 +791,7 @@
   let draft = null;             // { fileName, text, links[] } while preparing a build
   let profileMode = "loading";  // loading | empty | prepare | building | ready | error
   let profileError = "";
-  const attachedCodes = new Set();
+  const attachedCodes = new Map();
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -1018,19 +1033,27 @@
 
   // Link the saved profile to the open application (once per session).
   async function attachProfile(c, force) {
-    if (!profileKey || (!force && attachedCodes.has(c))) return;
-    attachedCodes.add(c);
-    try {
-      const attached = await rpc("iv_attach_profile", { p_code: c, p_key: profileKey });
-      if (attached.ok === false) throw new Error(attached.error || "Could not attach your profile.");
-      const response = await fetch("/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: c }) });
-      const result = await readJson(response);
-      if (!result.ok) throw new Error(result.error || "Could not fill the form from your resume.");
-      if (code === c) await poll();
-    } catch (error) {
-      $("chatHint").textContent = error.message || "Could not fill the form from your resume. Please try again.";
-      $("chatHint").classList.add("error");
-    }
+    if (!profileKey) return false;
+    const previous = attachedCodes.get(c);
+    if (previous && !force) return previous;
+    if (previous) await previous;
+    const work = (async () => {
+      try {
+        const attached = await rpc("iv_attach_profile", { p_code: c, p_key: profileKey });
+        if (attached.ok === false) throw new Error(attached.error || "Could not attach your profile.");
+        const response = await fetch("/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: c }) });
+        const result = await readJson(response);
+        if (!result.ok) throw new Error(result.error || "Could not fill the form from your resume.");
+        if (code === c) await poll();
+        return true;
+      } catch (error) {
+        $("chatHint").textContent = error.message || "Could not fill the form from your resume. Please try again.";
+        $("chatHint").classList.add("error");
+        return false;
+      }
+    })();
+    attachedCodes.set(c, work);
+    return work;
   }
 
   loadProfile();
@@ -1386,24 +1409,6 @@
       li.removeAttribute("aria-current");
       if (i === idx) li.setAttribute("aria-current", "step");
     });
-  }
-
-  function describe(e, fields) {
-    const p = e.payload || {};
-    const label = (id) => (fields.find((f) => f.field_id === id) || {}).label || "a question";
-    switch (e.action) {
-      case "start_session": return `Read ${p.field_count} questions from the page`;
-      case "start_session_failed": return "Couldn't read the page";
-      case "save_profile": return "Noted what you said";
-      case "draft_answers": return `Drafted ${p.drafted} answers`;
-      case "save_decision":
-        return ({ confirm: "Confirmed", revise: "Changed", skip: "Skipped" }[p.decision] || "Saved") + " " + label(p.field_id);
-      case "get_preview": return `Read back all answers (revision ${p.revision})`;
-      case "revise": return "Reopened " + label(p.field_id);
-      case "approve": return `Approved revision ${p.revision}`;
-      case "cancel": return "Cancelled";
-      default: return e.action;
-    }
   }
 
   renderConv();

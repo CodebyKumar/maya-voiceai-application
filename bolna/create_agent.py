@@ -106,6 +106,7 @@ def main():
         new_tool = next(tool for tool in tool_definitions() if tool["name"] == "voice_turn")
         api_tools["tools"] = [tool for tool in api_tools["tools"] if tool.get("name") != "voice_turn"] + [new_tool]
         api_tools["tools_params"]["voice_turn"] = tool_params()["voice_turn"]
+        api_tools["tools_params"]["get_current"]["url"] = os.environ.get("FORM_STATE_URL", tool_params()["voice_turn"]["url"].removesuffix("/voice-turn") + "/form-state")
         prompts = live.get("agent_prompts") or {}
         prompts.setdefault("task_1", {})["system_prompt"] = (ROOT / "bolna" / "prompt.md").read_text()
         body = {"agent_config": config, "agent_prompts": prompts}
