@@ -1,0 +1,11 @@
+{
+  "name": "voice-personal-interviewer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node web/server.mjs",
+    "test": "node --test web/*.test.mjs"
+  }
+}

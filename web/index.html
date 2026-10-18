@@ -1,0 +1,1419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Application Interview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #E9EDF4;
+    --sheet: #FBFCFE;
+    --ink: #1B2A4A;
+    --graphite: #5B6578;
+    --rule: #CBD3E0;
+    --rule-soft: #E1E6EF;
+    --pen: #2447C7;
+    --pen-soft: #7D93DE;
+    --stamp: #1F7A55;
+    --gap: #9A6412;
+    --gap-wash: #FBF1DF;
+    --error: #B4232C;
+    --now-wash: #EEF2FD;
+    --shadow: 0 1px 0 rgba(27, 42, 74, .06), 0 12px 32px -18px rgba(27, 42, 74, .35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0F1626; --sheet: #172036; --ink: #DCE4F4; --graphite: #9AA6BD;
+      --rule: #2C3954; --rule-soft: #222D45; --pen: #93AEFF; --pen-soft: #5E74B8;
+      --stamp: #5BC79A; --gap: #E3B067; --gap-wash: #2E2616; --error: #F07A80; --now-wash: #1D2A48;
+      --shadow: 0 12px 32px -18px rgba(0, 0, 0, .7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0F1626; --sheet: #172036; --ink: #DCE4F4; --graphite: #9AA6BD;
+    --rule: #2C3954; --rule-soft: #222D45; --pen: #93AEFF; --pen-soft: #5E74B8;
+    --stamp: #5BC79A; --gap: #E3B067; --gap-wash: #2E2616; --error: #F07A80; --now-wash: #1D2A48;
+    --shadow: 0 12px 32px -18px rgba(0, 0, 0, .7);
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 16px/1.5 "Public Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--pen); outline-offset: 3px; border-radius: 4px; }
+
+  /* Three zones: profile (left), Maya (centre), applications drawer (right) */
+  .app { display: grid; grid-template-columns: 330px minmax(0, 1fr); min-height: 100vh; }
+  .left {
+    position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    padding: 28px 24px; display: grid; align-content: start; gap: 22px;
+    border-right: 1px solid var(--rule-soft); background: var(--paper);
+  }
+  .brand { display: grid; gap: 2px; }
+  .brand strong { font-size: 18px; letter-spacing: -.01em; }
+  .brand span { font-size: 14px; color: var(--graphite); }
+  .stage { width: 100%; max-width: 900px; margin: 0 auto; padding: 24px 32px 64px; display: grid; gap: 22px; align-content: start; }
+  .stage-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .app-chip { min-width: 0; display: grid; gap: 1px; }
+  .app-chip strong { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .app-chip span { font-size: 13.5px; color: var(--graphite); }
+
+  .agent {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px 18px; padding: 18px 22px;
+    background: var(--sheet); border-radius: 14px; box-shadow: var(--shadow);
+  }
+  .agent .who-agent { text-align: left; display: grid; gap: 2px; }
+  .agent .who-agent strong { font-size: 20px; }
+  .agent .who-agent span { font-size: 14px; color: var(--graphite); }
+  .agent .controls { grid-column: 2; display: flex; gap: 10px; align-items: center; justify-content: end; }
+  .agent .steps { grid-column: 1 / -1; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); }
+  .tabs button {
+    border: 0; background: none; cursor: pointer; padding: 10px 14px; font-weight: 600; font-size: 15px;
+    color: var(--graphite); border-bottom: 2.5px solid transparent; margin-bottom: -1px; display: inline-flex; gap: 8px; align-items: center;
+  }
+  .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--pen); }
+  .badge { font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--gap-wash); color: var(--gap); }
+  .badge.fresh { background: var(--now-wash); color: var(--pen); }
+
+  /* Conversation */
+  .conv { display: grid; gap: 18px; }
+  .call-sep { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--graphite); }
+  .call-sep::before, .call-sep::after { content: ""; flex: 1; border-top: 1px solid var(--rule-soft); }
+  .call-sep .live { color: var(--error); font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+  .call-sep .live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .turns { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .turn { display: grid; gap: 3px; max-width: 78%; }
+  .turn .speaker { font-size: 12.5px; color: var(--graphite); font-weight: 600; }
+  .turn p { margin: 0; padding: 10px 14px; border-radius: 14px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .turn.from-agent { justify-self: start; }
+  .turn.from-agent p { background: var(--sheet); border: 1px solid var(--rule-soft); border-top-left-radius: 4px; }
+  .turn.from-user { justify-self: end; text-align: right; }
+  .turn.from-user p { background: var(--now-wash); color: var(--ink); border-top-right-radius: 4px; text-align: left; }
+  .conv-note { margin: 0; font-size: 14px; color: var(--graphite); text-align: center; }
+  .captured { background: var(--sheet); border: 1px solid var(--rule-soft); border-radius: 10px; padding: 14px 16px; }
+  .captured h3 { margin: 0 0 8px; font-size: 14px; color: var(--graphite); font-weight: 600; }
+  .captured ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+  .captured li { display: flex; justify-content: space-between; gap: 12px; }
+  .captured time { color: var(--graphite); font-variant-numeric: tabular-nums; flex: none; }
+  .conv-empty { text-align: center; color: var(--graphite); padding: 36px 12px; display: grid; gap: 6px; }
+  .conv-empty strong { color: var(--ink); font-size: 18px; }
+  .chat-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; margin-top: 20px; }
+  .chat-form textarea { min-height: 52px; max-height: 180px; resize: vertical; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--sheet); color: var(--ink); }
+  .chat-form button { align-self: end; min-height: 52px; }
+  .chat-hint { margin: 8px 0 0; color: var(--graphite); font-size: 13px; }
+  .chat-hint.error { color: var(--error); }
+
+  /* Applications drawer */
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 92vw); z-index: 20;
+    background: var(--paper); border-left: 1px solid var(--rule); box-shadow: -18px 0 40px -24px rgba(27, 42, 74, .45);
+    padding: 24px 20px; overflow-y: auto; display: grid; align-content: start; gap: 14px;
+    transform: translateX(105%); transition: transform .22s ease; visibility: hidden;
+  }
+  .drawer.open { transform: none; visibility: visible; }
+  .scrim { position: fixed; inset: 0; z-index: 15; background: rgba(15, 22, 38, .28); }
+  .icon-btn { border: 0; background: none; cursor: pointer; font-size: 22px; line-height: 1; color: var(--graphite); padding: 2px 6px; }
+
+  .call { display: grid; justify-items: end; gap: 6px; }
+  .call-btn {
+    position: relative;
+    min-height: 44px; border-radius: 999px;
+    border: 0; cursor: pointer;
+    background: var(--ink); color: var(--sheet);
+    font-weight: 600; font-size: 15px;
+    display: grid; place-items: center; text-align: center; padding: 10px 18px;
+    transition: transform .15s ease, background .2s ease;
+  }
+  .call-btn:hover { transform: scale(1.02); }
+  .call-btn:active { transform: scale(.98); }
+  .call-btn[data-state="active"] { background: var(--pen); }
+  .call-btn[data-state="connecting"], .call-btn[data-state="ringing"] { background: var(--graphite); cursor: progress; }
+  .ring {
+    position: absolute; inset: -5px; border-radius: 999px;
+    border: 2px solid var(--pen); opacity: 0;
+    transform: scale(calc(1 + var(--level, 0) * .18));
+    transition: transform .09s linear, opacity .2s;
+    pointer-events: none;
+  }
+  .call-btn[data-state="active"] .ring { opacity: .45; }
+  .call-status { margin: 0; font-size: 14px; color: var(--graphite); min-height: 21px; text-align: center; }
+  .call-status.error { color: var(--error); }
+  .mute {
+    border: 1px solid var(--rule); background: transparent; border-radius: 999px;
+    padding: 6px 16px; font-size: 14px; cursor: pointer;
+  }
+  .mute[aria-pressed="true"] { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+
+  .link-box { display: grid; gap: 8px; }
+  .link-box label { font-weight: 600; font-size: 15px; }
+  .link-row { display: flex; gap: 8px; }
+  .link-row input {
+    flex: 1; min-width: 0; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--rule); background: var(--sheet);
+  }
+  .link-row input::placeholder { color: var(--graphite); }
+  .hint { margin: 0; font-size: 14px; color: var(--graphite); }
+  .hint.error { color: var(--error); }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--graphite); font-size: 13.5px;
+  }
+  .steps li::before {
+    content: counter(step);
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px solid var(--rule); display: grid; place-items: center;
+    font-size: 11px; font-weight: 600;
+  }
+  .steps li.done { color: var(--ink); }
+  .steps li.done::before { content: "✓"; background: var(--stamp); border-color: var(--stamp); color: var(--sheet); }
+  .steps li.now { color: var(--ink); font-weight: 600; }
+  .steps li.now::before { border-color: var(--pen); color: var(--pen); }
+
+  .btn {
+    padding: 9px 16px; border-radius: 8px; border: 1px solid var(--ink);
+    background: transparent; font-weight: 600; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn.primary { background: var(--ink); color: var(--sheet); }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .btn.small { padding: 5px 12px; font-size: 14px; }
+
+  .activity h2 { font-size: 14px; font-weight: 600; margin: 0 0 8px; color: var(--graphite); }
+  .activity ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 14px; }
+  .activity li { display: flex; justify-content: space-between; gap: 12px; }
+  .activity time { color: var(--graphite); font-variant-numeric: tabular-nums; flex: none; }
+
+  /* The sheet */
+  .sheet {
+    background: var(--sheet);
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    padding: 44px 52px 40px;
+    min-height: 40vh;
+  }
+  .sheet-head { display: flex; justify-content: space-between; gap: 24px; align-items: start; padding-bottom: 22px; border-bottom: 2px solid var(--ink); }
+  .sheet-head h2 { margin: 0; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -.01em; max-width: 30ch; }
+  .source { margin: 6px 0 0; font-size: 14px; color: var(--graphite); }
+  .source a { color: inherit; }
+  .rev { flex: none; text-align: right; font-size: 14px; color: var(--graphite); }
+  .rev strong { display: block; font-size: 22px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .rev .sid { margin-top: 8px; }
+  .rev .sid b { color: var(--ink); letter-spacing: .12em; }
+
+  /* Profile card */
+  .profile { display: grid; gap: 10px; padding: 16px; border-radius: 10px; background: var(--sheet); border: 1px solid var(--rule-soft); }
+  .profile h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .profile p { margin: 0; font-size: 14px; color: var(--graphite); }
+  .drop {
+    display: grid; place-items: center; text-align: center; gap: 2px;
+    padding: 14px; border: 1.5px dashed var(--rule); border-radius: 8px; cursor: pointer;
+    font-size: 14px; color: var(--graphite);
+  }
+  .drop strong { color: var(--ink); }
+  .drop.over { border-color: var(--pen); background: var(--now-wash); }
+  .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .links { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .links li { display: flex; gap: 6px; align-items: center; }
+  .links input, .add-link input {
+    flex: 1; min-width: 0; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--rule); background: var(--paper); font-size: 14px;
+  }
+  .links button { border: 0; background: none; cursor: pointer; color: var(--graphite); font-size: 18px; line-height: 1; padding: 2px 6px; }
+  .add-link { display: flex; gap: 6px; }
+  .who { display: grid; gap: 2px; }
+  .who strong { font-size: 17px; }
+  .who span { font-size: 14px; color: var(--graphite); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chips span { font-size: 12.5px; padding: 2px 9px; border-radius: 999px; background: var(--paper); border: 1px solid var(--rule-soft); }
+  .srcs { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 13.5px; }
+  .srcs li { display: flex; gap: 8px; }
+  .srcs .ok { color: var(--stamp); }
+  .srcs .no { color: var(--gap); }
+  .profile details { font-size: 14px; }
+  .profile summary { cursor: pointer; color: var(--pen); font-weight: 600; }
+  .profile details ul { margin: 6px 0 0 18px; padding: 0; color: var(--graphite); }
+  .profile .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .using { margin: 6px 0 0; font-size: 14px; color: var(--stamp); }
+
+  /* Sessions sidebar */
+  .side-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .side-head h2 { margin: 0; font-size: 17px; font-weight: 700; }
+  .sessions { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .session {
+    width: 100%; text-align: left; cursor: pointer;
+    display: grid; gap: 4px; padding: 12px 14px; border-radius: 8px;
+    border: 1px solid var(--rule-soft); background: var(--sheet);
+  }
+  .session:hover { border-color: var(--rule); }
+  .session[aria-current="true"] { border-color: var(--pen); box-shadow: inset 3px 0 0 var(--pen); }
+  .session .t { font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .session .h { font-size: 13px; color: var(--graphite); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .session .m { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--graphite); }
+  .session .st { font-weight: 600; }
+  .session .st.approved { color: var(--stamp); }
+  .session .st.failed { color: var(--error); }
+  .session .st.previewing { color: var(--pen); }
+  .side-empty { margin: 0; font-size: 14px; color: var(--graphite); }
+  .reading { display: grid; place-content: center; text-align: center; min-height: 32vh; gap: 10px; color: var(--graphite); }
+  .reading h2 { color: var(--ink); font-size: 22px; margin: 0; }
+  .reading .bar { width: min(360px, 70%); height: 3px; margin: 14px auto 0; background: var(--rule-soft); overflow: hidden; border-radius: 2px; }
+  .reading .bar span { display: block; height: 100%; width: 40%; background: var(--pen); animation: slide 1.4s ease-in-out infinite; }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+  .gaps {
+    margin: 22px 0 0; padding: 12px 16px; border-radius: 6px;
+    background: var(--gap-wash); color: var(--gap); font-size: 15px;
+  }
+
+  .rows { list-style: none; margin: 8px 0 0; padding: 0; }
+  .row {
+    display: grid; grid-template-columns: 34px minmax(0, 1fr) 132px; gap: 4px 16px;
+    padding: 18px 12px 16px; margin: 0 -12px;
+    border-bottom: 1px solid var(--rule-soft);
+    border-radius: 4px;
+  }
+  .row.current { background: var(--now-wash); box-shadow: inset 3px 0 0 var(--pen); }
+  .num { font-weight: 600; color: var(--graphite); font-variant-numeric: tabular-nums; padding-top: 1px; }
+  .label { font-weight: 600; }
+  .label .req { color: var(--pen); margin-left: 3px; }
+  .choices { font-size: 14px; color: var(--graphite); margin-top: 2px; }
+  .line {
+    grid-column: 2 / 3;
+    font-family: "Kalam", cursive; font-size: 22px; line-height: 1.35;
+    color: var(--pen);
+    border-bottom: 1px dashed var(--rule);
+    min-height: 34px; padding-top: 4px;
+    overflow-wrap: anywhere;
+  }
+  .line.draft { color: var(--pen-soft); }
+  .line.blank { color: transparent; }
+  .line.ink-in { animation: ink 700ms ease-out both; }
+  @keyframes ink { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .note { grid-column: 2 / 3; font-size: 14px; color: var(--graphite); margin-top: 4px; }
+  .note.needs { color: var(--gap); }
+  .mark {
+    grid-column: 3; grid-row: 1 / span 2; align-self: start; justify-self: end;
+    font-size: 13px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+    border: 1.5px solid currentColor; white-space: nowrap;
+  }
+  .mark.confirmed, .mark.revised { color: var(--stamp); }
+  .mark.drafted { color: var(--pen); }
+  .mark.pending, .mark.missing { color: var(--gap); }
+  .mark.skipped, .mark.unsupported, .mark.todo { color: var(--graphite); }
+  .mark.todo { border-style: dashed; }
+  .mark.now { color: var(--sheet); background: var(--pen); border-color: var(--pen); }
+
+  .close { margin-top: 32px; display: grid; gap: 14px; justify-items: start; }
+  .close p { margin: 0; max-width: 60ch; }
+  .close .muted { color: var(--graphite); font-size: 15px; }
+  .stamp {
+    display: inline-grid; gap: 2px; padding: 10px 22px;
+    border: 3px solid var(--stamp); color: var(--stamp); border-radius: 6px;
+    transform: rotate(-3deg); font-weight: 700; font-size: 22px; line-height: 1.1;
+  }
+  .stamp small { font-size: 14px; font-weight: 600; }
+  .stamp.cancel { border-color: var(--graphite); color: var(--graphite); }
+  .stamp.fail { border-color: var(--error); color: var(--error); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+  .empty { display: grid; place-content: center; text-align: center; min-height: 32vh; gap: 10px; color: var(--graphite); }
+  .empty h2 { color: var(--ink); font-size: 24px; margin: 0; }
+  .empty p { margin: 0 auto; max-width: 42ch; }
+  .empty .lines { width: min(420px, 80%); margin: 18px auto 0; display: grid; gap: 22px; }
+  .empty .lines span { display: block; border-bottom: 1px dashed var(--rule); }
+
+  @media (max-width: 1000px) {
+    .app { grid-template-columns: minmax(0, 1fr); }
+    .left { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--rule-soft); }
+    .stage { padding: 20px 16px 48px; }
+    .sheet { padding: 28px 18px; }
+    .sheet-head h2 { font-size: 22px; }
+    .row { grid-template-columns: 28px minmax(0, 1fr); }
+    .mark { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 6px; }
+    .turn { max-width: 92%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .line.ink-in, .reading .bar span, .call-sep .live::before { animation: none; }
+    .drawer { transition: none; }
+    .ring, .call-btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="left" aria-label="Your profile">
+    <div class="brand"><strong>Application interview</strong><span>Talk it through with Maya. Review your answers before you submit.</span></div>
+    <section class="profile" id="profile" aria-labelledby="profileTitle">
+      <h2 id="profileTitle">Your profile</h2>
+      <div id="profileBody"></div>
+    </section>
+  </aside>
+
+  <main class="stage">
+    <header class="stage-head">
+      <div class="app-chip" id="appChip"><strong>No application open</strong><span>Paste a link below or say it on the call</span></div>
+      <button class="btn small" id="drawerBtn" type="button" aria-expanded="false" aria-controls="drawer">Applications <span id="appCount"></span></button>
+    </header>
+
+    <section class="agent" aria-label="Voice interview">
+      <div class="who-agent"><strong>Maya</strong><span>Your application interviewer</span></div>
+      <section class="call" aria-label="Voice call">
+        <button class="call-btn" id="callBtn" data-state="idle" type="button">
+          <span class="ring" aria-hidden="true"></span>
+          <span id="callLabel">Switch to voice</span>
+        </button>
+        <p class="call-status" id="callStatus" role="status">Uses your microphone. Headphones work best.</p>
+      </section>
+      <div class="controls"><button class="mute" id="muteBtn" type="button" aria-pressed="false" hidden>Mute</button></div>
+      <ol class="steps" id="steps" aria-label="Progress">
+        <li data-step="read">Read the form</li>
+        <li data-step="learn">Learn about you</li>
+        <li data-step="draft">Draft answers</li>
+        <li data-step="review">Review</li>
+        <li data-step="approve">Approve</li>
+      </ol>
+    </section>
+
+    <form class="link-box" id="linkForm">
+      <label for="linkInput">Job form or posting link</label>
+      <div class="link-row">
+        <input id="linkInput" type="url" inputmode="url" placeholder="https://" autocomplete="off" required>
+        <button class="btn primary" id="linkBtn" type="submit">Read form</button>
+      </div>
+      <p class="hint" id="linkHint" role="status">If your profile is ready, the form is filled from it right away. You can also just say the link on the call.</p>
+    </form>
+
+    <div class="tabs" role="tablist" aria-label="Interview views">
+      <button role="tab" id="tabConv" type="button" aria-selected="true" aria-controls="panelConv">Conversation</button>
+      <button role="tab" id="tabForm" type="button" aria-selected="false" aria-controls="panelForm">Application form <span class="badge" id="formBadge" hidden></span></button>
+    </div>
+
+    <section class="panel" id="panelConv" role="tabpanel" aria-labelledby="tabConv">
+      <div class="conv" id="conv"></div>
+      <form class="chat-form" id="chatForm">
+        <textarea id="chatInput" rows="2" maxlength="4000" aria-label="Message Maya" placeholder="Type a message to Maya…" required></textarea>
+        <button class="btn primary" id="chatSend" type="submit">Send</button>
+      </form>
+      <p class="chat-hint" id="chatHint" role="status">Open an application above to start chatting.</p>
+    </section>
+
+    <section class="panel sheet" id="panelForm" role="tabpanel" aria-labelledby="tabForm" aria-live="polite" hidden>
+      <div class="empty" id="empty">
+        <h2>Your application will appear here</h2>
+        <p>Paste a job form or posting link above, or start the interview and say it. Questions appear as soon as the page is read, and answers are written in as you go.</p>
+        <div class="lines" aria-hidden="true"><span></span><span></span><span></span></div>
+      </div>
+      <div class="reading" id="reading" hidden>
+        <h2 id="readingTitle">Reading the page</h2>
+        <p id="readingHost"></p>
+        <div class="bar" aria-hidden="true"><span></span></div>
+      </div>
+      <div id="form" hidden></div>
+    </section>
+  </main>
+
+  <aside class="drawer" id="drawer" aria-label="Your applications">
+    <div class="side-head">
+      <h2>Your applications</h2>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn small" id="newBtn" type="button">New</button>
+        <button class="icon-btn" id="drawerClose" type="button" aria-label="Close applications">×</button>
+      </div>
+    </div>
+    <ol class="sessions" id="sessions"></ol>
+    <p class="side-empty" id="sideEmpty">Applications you start are kept here so you can come back and finish them.</p>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/gh/bolna-ai/web-call@v3.0.0/dist/bolna-web-call.min.js"></script>
+<script>
+  // Public by design: only the read-only iv_get_view function is used from the page.
+  const SUPABASE_RPC = "https://pqkpwzsluzubzugpytrv.supabase.co/rest/v1/rpc/";
+  const SUPABASE_KEY = "sb_publishable_3vJzlPUXI89-soVAkOjZAA_gblzL0xN";
+  const POLL_MS = 1500;
+
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+
+  let code = new URLSearchParams(location.search).get("code") || store.get("interview.code") || null;
+  let clientRef = null;
+  let lastView = null;
+  let reading = false;
+  const seenText = {};
+
+  function newRef() {
+    return (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()) + Math.random().toString(16).slice(2);
+  }
+
+  // Codes of sessions this browser started or opened, newest first.
+  function getHistory() {
+    try { return JSON.parse(store.get("interview.history") || "[]"); } catch { return []; }
+  }
+  function addHistory(c) {
+    const h = [c, ...getHistory().filter((x) => x !== c)].slice(0, 30);
+    store.set("interview.history", JSON.stringify(h));
+  }
+
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  async function rpc(fn, args) {
+    const r = await fetch(SUPABASE_RPC + fn, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(args),
+    });
+    return readJson(r);
+  }
+
+  async function readJson(response) {
+    const text = await response.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { throw new Error(response.ok ? "The service returned an empty response. Please try again." : `The service is unavailable (HTTP ${response.status}). Please try again.`); }
+    if (!response.ok) throw new Error(data.error || data.message || `Request failed (HTTP ${response.status}).`);
+    return data;
+  }
+
+  // ---------- Voice call ----------
+  let call = null;
+  const callBtn = $("callBtn"), callLabel = $("callLabel"), callStatus = $("callStatus"), muteBtn = $("muteBtn");
+  const LABELS = { idle: "Switch to voice", connecting: "Connecting", ringing: "Connecting", active: "End call", ended: "Switch to voice" };
+  const STATUS = { connecting: "Getting your microphone ready…", ringing: "Calling the agent…", active: "Connected. Say hello.", ended: "Call ended. Your progress is saved." };
+
+  function setCallState(state) {
+    callBtn.dataset.state = state;
+    callLabel.textContent = LABELS[state] || "Switch to voice";
+    if (STATUS[state]) { callStatus.textContent = STATUS[state]; callStatus.classList.remove("error"); }
+    muteBtn.hidden = state !== "active";
+    if (state !== "active") callBtn.style.setProperty("--level", 0);
+  }
+
+  callBtn.addEventListener("click", async () => {
+    const state = callBtn.dataset.state;
+    if (state === "active") { await call?.stop(); return; }
+    if (state === "connecting" || state === "ringing") return;
+    if (chatBusy) { showCallError("Wait for Maya's text reply before switching to voice."); return; }
+    if (!window.BolnaWebCall) { showCallError("The voice library did not load. Check your connection and reload."); return; }
+
+    // A fresh reference per call lets the page find a session the call creates.
+    // If a session is already open, the agent gets its code and picks up from there.
+    clientRef = newRef();
+    liveCallCode = code || null;
+    const WebCall = window.BolnaWebCall.BolnaWebCall || window.BolnaWebCall;
+    call = new WebCall({
+      sessionUrl: "/bolna-session",
+      userData: {
+        client_ref: clientRef,
+        session_code: code || "",
+        form_title: (code && lastView && lastView.form_title) || "",
+        profile_key: profileKey || "",
+        profile_name: (profile && profile.data && profile.data.name) || "",
+        welcome_message: buildWelcome(),
+        conversation_context: buildVoiceContext(),
+      },
+    });
+    call.on("state-change", (st) => {
+      setCallState(st);
+      if (st === "ended") { liveUntil = Date.now() + 90000; pollTranscript(); }
+    });
+    call.on("call-start", () => {
+      liveRunId = call.getRunId && call.getRunId();
+      liveTurns = [];
+      liveUntil = Infinity;
+      showTab("conv");
+      renderConv();
+    });
+    call.on("volume-level", (v) => callBtn.style.setProperty("--level", Math.min(1, v * 2.5)));
+    call.on("call-end", ({ reason }) => { if (reason === "failed") showCallError("The call dropped. Your progress is saved; start again to continue."); });
+    call.on("error", (e) => showCallError(errorText(e)));
+    try { await call.start(); } catch (e) { showCallError(errorText(e)); }
+  });
+
+  // The agent's first line, written for this person and this application.
+  function buildWelcome() {
+    const first = ((profile && profile.data && profile.data.name) || "").trim().split(/\s+/)[0] || "";
+    const hi = first ? `Hi ${first}, I'm Maya.` : "Hi, I'm Maya.";
+    const v = code && lastView ? lastView : null;
+    const role = v && v.form_title ? v.form_title.replace(/\s*\(questions from the job posting\)\s*$/, "") : "";
+    if (v && savedCalls.some((c) => c.status === "text" && c.transcript?.length)) return `Let's carry on with ${role || "your application"} where we left off.`;
+    if (v && v.status === "approved") return `${hi} Your answers for ${role || "this application"} are already locked in. Want to go over anything?`;
+    if (v && ["reviewing", "revising", "previewing"].includes(v.status)) {
+      const left = (v.fields || []).filter((f) => ["pending", "drafted"].includes(f.status)).length;
+      return `${hi} Welcome back. We're partway through ${role || "your application"}${left ? `, about ${left} to go` : ""}. Shall we pick up where we left off?`;
+    }
+    if (v && first) return `${hi} I've got your resume and the ${role || "application"} open, so this should be quick. Ready?`;
+    if (v) return `${hi} I've got ${role || "your application"} open. Before we start, tell me a little about yourself. What do you do right now?`;
+    if (first) return `${hi} Good to have your resume already. Which job are we applying for today? You can paste the link on the page or just tell me.`;
+    return "Hi, I'm Maya. I'll help you get your job application done. Which job are we applying for? You can paste the link on the page or tell me.";
+  }
+
+  muteBtn.addEventListener("click", () => {
+    const muted = !call.isMuted();
+    call.setMuted(muted);
+    muteBtn.setAttribute("aria-pressed", String(muted));
+    muteBtn.textContent = muted ? "Unmute" : "Mute";
+  });
+
+  function errorText(e) {
+    const map = {
+      microphone_denied: "Microphone access is blocked. Allow it in your browser's address bar, then start again.",
+      mint_failed: "Could not start the call. Check that the local server is running with your Bolna key.",
+      at_capacity: "All lines are busy. Try again in a minute.",
+      connect_failed: "Could not reach the agent. Check your connection and start again.",
+      autoplay_blocked: "Your browser blocked audio. Click Start interview again.",
+    };
+    return map[e && e.code] || (e && e.message) || "Something went wrong starting the call.";
+  }
+  function showCallError(msg) {
+    setCallState("idle");
+    callStatus.textContent = msg;
+    callStatus.classList.add("error");
+  }
+
+  // ---------- Tabs and drawer ----------
+  let tab = "conv";
+  let formSeen = {};   // answers the person has already looked at on the form tab
+  let formSeenFor = null;
+  function showTab(name) {
+    tab = name;
+    $("tabConv").setAttribute("aria-selected", String(name === "conv"));
+    $("tabForm").setAttribute("aria-selected", String(name === "form"));
+    $("panelConv").hidden = name !== "conv";
+    $("panelForm").hidden = name !== "form";
+    if (name === "form" && lastView) { formSeen = snapshot(lastView); updateBadge(lastView); }
+  }
+  $("tabConv").addEventListener("click", () => showTab("conv"));
+  $("tabForm").addEventListener("click", () => showTab("form"));
+  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") { const next = tab === "conv" ? "form" : "conv"; showTab(next); $(next === "conv" ? "tabConv" : "tabForm").focus(); }
+  });
+
+  function snapshot(v) {
+    const m = {};
+    for (const f of v.fields || []) m[f.field_id] = f.answer ?? f.draft ?? "";
+    return m;
+  }
+  // Badge: answers written since the form tab was last opened, else the open gaps.
+  function updateBadge(v) {
+    const b = $("formBadge");
+    const fields = v.fields || [];
+    const fresh = tab === "form" ? 0 : fields.filter((f) => (f.answer ?? f.draft ?? "") && formSeen[f.field_id] !== (f.answer ?? f.draft ?? "")).length;
+    const gaps = fields.filter((f) => f.status === "pending").length;
+    if (fresh) { b.textContent = `${fresh} new`; b.className = "badge fresh"; b.hidden = false; }
+    else if (gaps && !["approved", "cancelled", "failed"].includes(v.status)) { b.textContent = `${gaps} to answer`; b.className = "badge"; b.hidden = false; }
+    else b.hidden = true;
+  }
+
+  function openDrawer(open) {
+    $("drawer").classList.toggle("open", open);
+    $("scrim").hidden = !open;
+    $("drawerBtn").setAttribute("aria-expanded", String(open));
+    if (open) $("drawerClose").focus();
+  }
+  $("drawerBtn").addEventListener("click", () => openDrawer(!$("drawer").classList.contains("open")));
+  $("drawerClose").addEventListener("click", () => { openDrawer(false); $("drawerBtn").focus(); });
+  $("scrim").addEventListener("click", () => openDrawer(false));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("drawer").classList.contains("open")) { openDrawer(false); $("drawerBtn").focus(); } });
+
+  function renderChip(v) {
+    const chip = $("appChip");
+    if (!v) { chip.innerHTML = `<strong>No application open</strong><span>Paste a link below or say it on the call</span>`; return; }
+    const done = (v.fields || []).filter((f) => ["confirmed", "revised", "skipped"].includes(f.status)).length;
+    chip.innerHTML = `<strong>${esc((v.form_title || "Application").replace(/\s*\(questions from the job posting\)\s*$/, ""))}</strong>
+      <span>${esc(STATUS_WORD[v.status] || v.status)}, ${done} of ${(v.fields || []).length} answered. Code ${esc(v.code)}</span>`;
+  }
+
+  // ---------- Conversation ----------
+  let savedCalls = [];       // calls stored for this application (from Supabase)
+  let liveRunId = null;      // the call happening now, or just ended
+  let liveTurns = [];
+  let liveUntil = 0;         // keep polling the live call's transcript until this time
+  let liveCallCode = null;
+  let callsFor = null;
+  let chatBusy = false;
+  let pendingChat = null;
+
+  function buildVoiceContext() {
+    const turns = [...savedCalls].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+      .flatMap((c) => Array.isArray(c.transcript) ? c.transcript : []).slice(-20)
+      .map((t) => `${t.role === "user" ? "Applicant" : "Maya"}: ${String(t.text || "").slice(0, 800)}`);
+    const view = lastView && lastView.code === code ? { status: lastView.status, revision: lastView.revision, fields: lastView.fields } : null;
+    return JSON.stringify({ conversation: turns, form: view }).slice(0, 12000);
+  }
+
+  async function loadCalls() {
+    if (!code) { savedCalls = []; callsFor = null; renderConv(); return; }
+    const requested = code;
+    try { const result = await rpc("iv_get_calls", { p_code: requested }); if (code === requested && Array.isArray(result)) { savedCalls = result; callsFor = requested; } } catch {}
+    renderConv();
+  }
+
+  $("chatForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const text = $("chatInput").value.trim();
+    const currentCode = code;
+    if (!currentCode) {
+      $("chatHint").textContent = "Paste an application link above and select Read form first.";
+      $("chatHint").classList.add("error");
+      $("linkInput").focus();
+      return;
+    }
+    if (!text || chatBusy) return;
+    if (["active", "connecting", "ringing"].includes(callBtn.dataset.state)) {
+      $("chatHint").textContent = "End the voice call before sending a text message.";
+      $("chatHint").classList.add("error");
+      return;
+    }
+    chatBusy = true;
+    pendingChat = { code: currentCode, text };
+    $("chatSend").disabled = true;
+    $("chatHint").classList.remove("error");
+    $("chatHint").textContent = "Maya is thinking…";
+    renderConv();
+    try {
+      const response = await fetch("/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: currentCode, message: text }) });
+      const data = await readJson(response);
+      if (!response.ok || !data.ok) throw new Error(data.error || "Could not send your message.");
+      $("chatInput").value = "";
+      $("chatHint").textContent = "Your conversation is saved with this application.";
+      if (code === currentCode) { await loadCalls(); await poll(); }
+    } catch (error) {
+      $("chatHint").textContent = error.message || "Could not send your message. Please try again.";
+      $("chatHint").classList.add("error");
+      if (code === currentCode) await loadCalls();
+    } finally {
+      chatBusy = false;
+      pendingChat = null;
+      $("chatSend").disabled = false;
+      renderConv();
+    }
+  });
+
+  async function pollTranscript() {
+    if (!liveRunId || Date.now() > liveUntil) return;
+    try {
+      const r = await fetch(`/transcript?run_id=${encodeURIComponent(liveRunId)}&code=${encodeURIComponent(liveCallCode || "")}`);
+      const d = await readJson(r);
+      if (d.ok && Array.isArray(d.transcript)) {
+        if (d.transcript.length >= liveTurns.length) liveTurns = d.transcript;
+        if (d.status === "completed" && callBtn.dataset.state !== "active") { liveUntil = 0; await loadCalls(); }
+        renderConv();
+      }
+    } catch {}
+  }
+  setInterval(pollTranscript, 3000);
+
+  function turnsHtml(turns) {
+    return `<ol class="turns">${turns.map((t) => `
+      <li class="turn ${t.role === "user" ? "from-user" : "from-agent"}"><span class="speaker">${t.role === "user" ? "You" : "Maya"}</span><p>${esc(t.text)}</p></li>`).join("")}</ol>`;
+  }
+
+  function when(iso) {
+    const d = new Date(iso);
+    return isNaN(d) ? "" : d.toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderConv() {
+    const el = $("conv");
+    const calls = savedCalls.filter((c) => c.run_id !== liveRunId);
+    const liveActive = callBtn.dataset.state === "active";
+    const liveStored = savedCalls.find((c) => c.run_id === liveRunId);
+    const live = liveRunId ? (liveTurns.length >= ((liveStored && liveStored.transcript.length) || 0) ? liveTurns : liveStored.transcript) : [];
+    let html = "";
+    for (const c of calls) {
+      const turns = Array.isArray(c.transcript) ? c.transcript : [];
+      html += `<div class="call-sep">${c.status === "text" ? "Text" : "Call"}, ${esc(when(c.created_at))}</div>` + (turns.length ? turnsHtml(turns) : `<p class="conv-note">No words were recorded.</p>`);
+    }
+    if (pendingChat && pendingChat.code === code) html += turnsHtml([{ role: "user", text: pendingChat.text }]) + `<p class="conv-note">Maya is thinking…</p>`;
+    if (liveRunId) {
+      html += `<div class="call-sep">${liveActive ? '<span class="live">Live now</span>' : "This call"}</div>`;
+      html += live.length ? turnsHtml(live)
+        : `<p class="conv-note">${liveActive ? "Maya is listening. The words appear here as Bolna records them; the full transcript is always saved when the call ends." : "Fetching the transcript of this call…"}</p>`;
+    }
+    const events = (lastView && lastView.events) || [];
+    if (events.length) {
+      html += `<section class="captured"><h3>Saved to your application</h3><ol>${events.slice(0, 6).map((e) => {
+        const t = new Date(e.at);
+        const hhmm = isNaN(t) ? "" : t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        return `<li><span>${esc(describe(e, lastView.fields || []))}</span><time>${esc(hhmm)}</time></li>`;
+      }).join("")}</ol></section>`;
+    }
+    if (!html) {
+      html = `<div class="conv-empty"><strong>Chat with Maya</strong><span>Open an application, then type below or switch to voice.</span></div>`;
+    }
+    el.innerHTML = html;
+  }
+
+  // ---------- Profile from resume and links ----------
+  const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+  const PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const MAMMOTH = "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js";
+
+  // ?profile=KEY opens a saved profile (handy for demos); otherwise the one this browser built.
+  let profileKey = new URLSearchParams(location.search).get("profile") || store.get("interview.profile") || null;
+  if (profileKey) store.set("interview.profile", profileKey);
+  let profile = null;           // { profile_key, data, sources }
+  let draft = null;             // { fileName, text, links[] } while preparing a build
+  let profileMode = "loading";  // loading | empty | prepare | building | ready | error
+  let profileError = "";
+  const attachedCodes = new Set();
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) return resolve();
+      const el = document.createElement("script");
+      el.src = src; el.onload = resolve; el.onerror = () => reject(new Error("Could not load " + src));
+      document.head.appendChild(el);
+    });
+  }
+
+  const URL_RE = /\b(?:https?:\/\/[^\s<>()"']+|(?:www\.)?(?:linkedin\.com|github\.com|gitlab\.com|behance\.net|dribbble\.com|medium\.com)\/[^\s<>()"']+)/gi;
+
+  function linksFrom(text, extra) {
+    const found = [...(extra || []), ...(String(text).match(URL_RE) || [])]
+      .map((u) => u.replace(/[).,;]+$/, ""))
+      .filter((u) => !/^(mailto|tel):/i.test(u));
+    const seen = new Set();
+    return found.filter((u) => {
+      const k = u.toLowerCase().replace(/^https?:\/\/(www\.)?/, "").replace(/\/+$/, "");
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).slice(0, 8);
+  }
+
+  // Text and links come out in the browser; only text and URLs are sent on, never the file.
+  async function readResume(file) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".pdf")) {
+      await loadScript(PDFJS);
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+      const doc = await window.pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+      let text = "";
+      const hidden = [];
+      for (let i = 1; i <= Math.min(doc.numPages, 6); i++) {
+        const page = await doc.getPage(i);
+        const tc = await page.getTextContent();
+        text += tc.items.map((it) => it.str + (it.hasEOL ? "\n" : " ")).join("") + "\n";
+        for (const a of await page.getAnnotations()) if (a.url) hidden.push(a.url);
+      }
+      return { text, links: linksFrom(text, hidden) };
+    }
+    if (name.endsWith(".docx")) {
+      await loadScript(MAMMOTH);
+      const r = await window.mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+      const dom = new DOMParser().parseFromString(r.value, "text/html");
+      const hrefs = [...dom.querySelectorAll("a[href]")].map((a) => a.getAttribute("href"));
+      const text = dom.body.innerText || dom.body.textContent || "";
+      return { text, links: linksFrom(text, hrefs) };
+    }
+    if (name.endsWith(".txt") || name.endsWith(".md") || file.type.startsWith("text/")) {
+      const text = await file.text();
+      return { text, links: linksFrom(text) };
+    }
+    throw new Error("Use a PDF, Word (.docx) or text file.");
+  }
+
+  const SOURCE_NAME = { resume: "Resume", linkedin: "LinkedIn", github: "GitHub", website: "Website" };
+  const SOURCE_STATUS = {
+    read: ["ok", "read"], not_given: ["no", "not added"], login_required: ["no", "couldn't read, it needs a login"],
+    unreachable: ["no", "couldn't open the page"], nearly_empty: ["no", "page had almost no text"],
+  };
+
+  function renderProfile() {
+    const body = $("profileBody");
+    if (profileMode === "loading") { body.innerHTML = `<p>Loading your profile…</p>`; return; }
+
+    if (profileMode === "empty" || profileMode === "error") {
+      body.innerHTML = `
+        <p>Add your resume once. Every application then starts with what it already knows, so the call only covers what's new.</p>
+        <label class="drop" id="drop">
+          <input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
+          <strong>Upload resume</strong><span>PDF, Word or text. Drop it here or click.</span>
+        </label>
+        ${profileMode === "error" ? `<p class="hint error">${esc(profileError)}</p>` : ""}`;
+      wireDrop();
+      return;
+    }
+
+    if (profileMode === "prepare" || profileMode === "building") {
+      const busy = profileMode === "building";
+      body.innerHTML = `
+        <p>${draft.fileName ? `<strong>${esc(draft.fileName)}</strong> read. ` : ""}Links to read too${draft.links.length ? ", found in your resume" : ""}:</p>
+        <ul class="links" id="linkList">${draft.links.map((u, i) => `
+          <li><input value="${esc(u)}" data-i="${i}" aria-label="Link ${i + 1}" ${busy ? "disabled" : ""}><button type="button" data-remove="${i}" aria-label="Remove link" ${busy ? "disabled" : ""}>×</button></li>`).join("")}
+        </ul>
+        <div class="add-link"><input id="addLink" placeholder="Add LinkedIn, GitHub or portfolio link" ${busy ? "disabled" : ""}><button class="btn small" type="button" id="addLinkBtn" ${busy ? "disabled" : ""}>Add</button></div>
+        <p>LinkedIn usually needs a login, so it may not be readable. Your resume covers the same facts.</p>
+        <div class="row-actions">
+          <button class="btn primary" type="button" id="buildBtn" ${busy ? "disabled" : ""}>${busy ? "Building profile…" : "Build profile"}</button>
+          ${busy ? "" : `<button class="btn" type="button" id="cancelPrep">Cancel</button>`}
+        </div>
+        ${busy ? `<p>Reading your resume${draft.links.length ? " and links" : ""}. This takes about 20 seconds.</p>` : ""}`;
+      if (!busy) wirePrepare();
+      return;
+    }
+
+    // ready
+    const d = profile.data || {};
+    const roles = (d.experience || []).length;
+    const skills = d.skills || [];
+    const facts = [d.location, d.total_years_experience != null ? `${d.total_years_experience} years experience` : ""].filter(Boolean).join(", ");
+    body.innerHTML = `
+      <div class="who"><strong>${esc(d.name || "Unnamed profile")}</strong>${d.headline ? `<span>${esc(d.headline)}</span>` : ""}${facts ? `<span>${esc(facts)}</span>` : ""}</div>
+      ${skills.length ? `<div class="chips">${skills.slice(0, 8).map((x) => `<span>${esc(x)}</span>`).join("")}${skills.length > 8 ? `<span>+${skills.length - 8} more</span>` : ""}</div>` : ""}
+      <ul class="srcs">${(profile.sources || []).map((src) => {
+        const [cls, word] = SOURCE_STATUS[src.status] || ["no", src.status];
+        return `<li><span class="${cls}">${cls === "ok" ? "✓" : "–"}</span><span>${esc(SOURCE_NAME[src.type] || src.type)}: ${esc(word)}</span></li>`;
+      }).join("")}</ul>
+      <details><summary>What it knows</summary>
+        ${d.summary ? `<p style="margin-top:6px">${esc(d.summary)}</p>` : ""}
+        <ul>
+          ${d.email ? `<li>${esc(d.email)}</li>` : ""}${d.phone ? `<li>${esc(d.phone)}</li>` : ""}
+          ${(d.experience || []).map((e) => `<li>${esc([e.title, e.company].filter(Boolean).join(", "))}${e.start ? ` (${esc(e.start)} to ${esc(e.end || "now")})` : ""}</li>`).join("")}
+          ${(d.education || []).map((e) => `<li>${esc([e.degree, e.institution, e.year].filter(Boolean).join(", "))}</li>`).join("")}
+        </ul>
+      </details>
+      <div class="row-actions">
+        <button class="btn small" type="button" id="updateProfile">Update</button>
+        <button class="btn small" type="button" id="forgetProfile">Remove</button>
+      </div>`;
+    $("updateProfile").onclick = () => {
+      const l = d.links || {};
+      draft = { fileName: "", text: "", links: linksFrom("", [l.linkedin, l.github, l.portfolio, ...(l.other || [])].filter(Boolean)) };
+      profileMode = "empty-update";
+      renderUpdate();
+    };
+    $("forgetProfile").onclick = () => {
+      profileKey = null; profile = null; store.set("interview.profile", "");
+      profileMode = "empty"; renderProfile();
+    };
+  }
+
+  // Update: upload a new resume (optional) and edit links, keeping the same profile key.
+  function renderUpdate() {
+    const body = $("profileBody");
+    body.innerHTML = `
+      <p>Upload a newer resume, or just change the links and rebuild.</p>
+      <label class="drop" id="drop">
+        <input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md">
+        <strong>Upload new resume</strong><span>Optional</span>
+      </label>
+      <div class="row-actions">
+        <button class="btn" type="button" id="linksOnly">Edit links only</button>
+        <button class="btn" type="button" id="cancelPrep">Cancel</button>
+      </div>`;
+    wireDrop();
+    $("linksOnly").onclick = () => { profileMode = "prepare"; renderProfile(); };
+    $("cancelPrep").onclick = () => { draft = null; profileMode = "ready"; renderProfile(); };
+  }
+
+  function wireDrop() {
+    const drop = $("drop"), input = $("resumeFile");
+    input.addEventListener("change", () => input.files[0] && takeFile(input.files[0]));
+    drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); e.dataTransfer.files[0] && takeFile(e.dataTransfer.files[0]); });
+  }
+
+  async function takeFile(file) {
+    if (file.size > 5 * 1024 * 1024) { profileError = "That file is over 5 MB. Use a smaller resume file."; profileMode = "error"; renderProfile(); return; }
+    $("profileBody").innerHTML = `<p>Reading ${esc(file.name)}…</p>`;
+    try {
+      const r = await readResume(file);
+      if (r.text.replace(/\s/g, "").length < 80) throw new Error("No text found in that file. If it is a scanned image, upload a text-based PDF or Word file.");
+      const keep = draft && draft.links ? draft.links : [];
+      draft = { fileName: file.name, text: r.text, links: linksFrom("", [...r.links, ...keep]) };
+      profileMode = "prepare";
+    } catch (e) {
+      profileError = e.message || "Could not read that file.";
+      profileMode = "error";
+    }
+    renderProfile();
+  }
+
+  function syncLinks() {
+    document.querySelectorAll("#linkList input").forEach((el) => { draft.links[Number(el.dataset.i)] = el.value.trim(); });
+    draft.links = draft.links.filter(Boolean);
+  }
+
+  function wirePrepare() {
+    $("linkList").addEventListener("click", (e) => {
+      const i = e.target.dataset.remove;
+      if (i === undefined) return;
+      syncLinks(); draft.links.splice(Number(i), 1); renderProfile();
+    });
+    const add = () => {
+      const v = $("addLink").value.trim();
+      if (!v) return;
+      syncLinks(); draft.links = linksFrom("", [...draft.links, v]); renderProfile();
+    };
+    $("addLinkBtn").onclick = add;
+    $("addLink").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); add(); } });
+    $("cancelPrep").onclick = () => { draft = null; profileMode = profile ? "ready" : "empty"; renderProfile(); };
+    $("buildBtn").onclick = buildProfile;
+  }
+
+  async function buildProfile() {
+    syncLinks();
+    const sending = { ...draft };
+    profileMode = "building"; renderProfile();
+    try {
+      const r = await fetch("/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile_key: profileKey || "", resume_text: sending.text || "", links: sending.links }),
+      });
+      const d = await readJson(r);
+      if (!d.ok || !d.profile_key) throw new Error(d.error || d.message || "The profile could not be built.");
+      profileKey = d.profile_key;
+      store.set("interview.profile", profileKey);
+      profile = d;
+      draft = null;
+      profileMode = "ready";
+      if (code) await attachProfile(code, true);
+    } catch (e) {
+      profileError = (e.message || "The profile could not be built.") + " Try again.";
+      profileMode = draft ? "prepare" : "error";
+      if (profileMode === "prepare") setTimeout(() => alertHint(profileError), 0);
+    }
+    renderProfile();
+  }
+
+  function alertHint(msg) {
+    const p = document.createElement("p");
+    p.className = "hint error"; p.textContent = msg;
+    $("profileBody").appendChild(p);
+  }
+
+  async function loadProfile() {
+    if (!profileKey) { profileMode = "empty"; renderProfile(); return; }
+    try {
+      const d = await rpc("iv_get_profile", { p_key: profileKey });
+      if (d.ok) { profile = d; profileMode = "ready"; }
+      else { profileKey = null; store.set("interview.profile", ""); profileMode = "empty"; }
+    } catch { profileMode = "empty"; }
+    renderProfile();
+  }
+
+  // Link the saved profile to the open application (once per session).
+  async function attachProfile(c, force) {
+    if (!profileKey || (!force && attachedCodes.has(c))) return;
+    attachedCodes.add(c);
+    try {
+      const attached = await rpc("iv_attach_profile", { p_code: c, p_key: profileKey });
+      if (attached.ok === false) throw new Error(attached.error || "Could not attach your profile.");
+      const response = await fetch("/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: c }) });
+      const result = await readJson(response);
+      if (!result.ok) throw new Error(result.error || "Could not fill the form from your resume.");
+      if (code === c) await poll();
+    } catch (error) {
+      $("chatHint").textContent = error.message || "Could not fill the form from your resume. Please try again.";
+      $("chatHint").classList.add("error");
+    }
+  }
+
+  loadProfile();
+
+  // ---------- Link from the page ----------
+  const linkForm = $("linkForm"), linkInput = $("linkInput"), linkBtn = $("linkBtn"), linkHint = $("linkHint");
+  const HINT = linkHint.textContent;
+
+  linkForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (["active", "connecting", "ringing"].includes(callBtn.dataset.state)) {
+      linkHint.textContent = "End the voice call before opening another application.";
+      linkHint.classList.add("error");
+      return;
+    }
+    let url = linkInput.value.trim();
+    if (!url || reading) return;
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    reading = true;
+    linkBtn.disabled = true;
+    linkBtn.textContent = "Reading…";
+    linkHint.classList.remove("error");
+    linkHint.textContent = "Reading the page. Big application pages can take up to 20 seconds.";
+    clientRef = newRef();
+    showTab("form");
+    showReading(url);
+    try {
+      const r = await fetch("/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ form_url: url, client_ref: clientRef, profile_key: profileKey || "" }),
+      });
+      const d = await readJson(r);
+      if (d.ok && d.code) {
+        linkInput.value = "";
+        attach(d.code);
+        showTab("form");
+        if (d.has_profile) {
+          linkHint.textContent = "Form read. Filling it in from your profile…";
+          $("readingTitle").textContent = "Filling it in from your profile";
+          showReading(url);
+          try {
+            const dr = await readJson(await fetch("/draft", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: d.code }) }));
+            if (!dr.ok) throw new Error(dr.error || "Could not draft answers.");
+            const gaps = (dr.form?.still_needed || dr.gaps || []).length;
+            linkHint.textContent = `Drafted answers from your profile.${gaps ? ` ${gaps} still need you.` : ""} Chat with Maya to review them.`;
+          } catch {
+            linkHint.textContent = "Form read. Start the interview and Maya will fill it in with you.";
+          }
+          $("readingTitle").textContent = "Reading the page";
+          poll();
+        } else {
+          linkHint.textContent = "Form read. Chat with Maya to prepare your answers. You can add your resume on the left too.";
+        }
+        showTab("conv");
+        $("chatHint").textContent = "Your conversation is saved with this application.";
+        $("chatInput").focus();
+      } else {
+        linkHint.textContent = (d.error ? d.error + ". " : "") + "Try a different public link.";
+        linkHint.classList.add("error");
+        hideReading();
+      }
+    } catch {
+      linkHint.textContent = "Could not reach the page reader. Check that the local server is running.";
+      linkHint.classList.add("error");
+      hideReading();
+    } finally {
+      reading = false;
+      linkBtn.disabled = false;
+      linkBtn.textContent = "Read form";
+    }
+  });
+
+  function showReading(url) {
+    let host = url;
+    try { host = new URL(url).hostname; } catch {}
+    $("readingHost").textContent = host;
+    $("empty").hidden = true;
+    $("form").hidden = true;
+    $("reading").hidden = false;
+  }
+  function hideReading() {
+    $("reading").hidden = true;
+    if (!lastView) $("empty").hidden = false;
+    else $("form").hidden = false;
+  }
+
+  // ---------- Sessions ----------
+  function attach(newCode) {
+    clientRef = null;
+    code = newCode;
+    linkForm.hidden = true;
+    store.set("interview.code", code);
+    addHistory(code);
+    const u = new URL(location.href);
+    u.searchParams.set("code", code);
+    history.replaceState(null, "", u);
+    poll();
+    $("chatHint").textContent = "Your conversation is saved with this application.";
+    $("chatHint").classList.remove("error");
+    refreshSessions();
+    if (callsFor !== code) { if (callBtn.dataset.state !== "active") { liveRunId = null; liveTurns = []; } loadCalls(); }
+  }
+
+  $("newBtn").addEventListener("click", () => {
+    if (["active", "connecting", "ringing"].includes(callBtn.dataset.state)) {
+      callStatus.textContent = "End the voice call before starting another application.";
+      callStatus.classList.add("error");
+      openDrawer(false);
+      return;
+    }
+    code = null;
+    clientRef = null;
+    lastView = null;
+    linkForm.hidden = false;
+    store.set("interview.code", "");
+    const u = new URL(location.href);
+    u.searchParams.delete("code");
+    history.replaceState(null, "", u);
+    $("form").hidden = true;
+    $("reading").hidden = true;
+    $("empty").hidden = false;
+    savedCalls = []; callsFor = null;
+    if (callBtn.dataset.state !== "active") { liveRunId = null; liveTurns = []; }
+    renderChip(null); renderConv(); $("formBadge").hidden = true;
+    openDrawer(false);
+    document.querySelectorAll("#steps li").forEach((li) => { li.className = ""; li.removeAttribute("aria-current"); });
+    linkHint.classList.remove("error");
+    linkHint.textContent = HINT;
+    refreshSessions();
+    linkInput.focus();
+  });
+
+  const STATUS_WORD = {
+    collecting: "Gathering details", reviewing: "Reviewing", revising: "Reviewing",
+    previewing: "Ready to approve", approved: "Approved", cancelled: "Cancelled", failed: "Couldn't read",
+  };
+
+  function ago(iso) {
+    const s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (!isFinite(s)) return "";
+    if (s < 60) return "just now";
+    if (s < 3600) return Math.floor(s / 60) + " min ago";
+    if (s < 86400) return Math.floor(s / 3600) + " h ago";
+    return new Date(iso).toLocaleDateString([], { day: "numeric", month: "short" });
+  }
+
+  async function refreshSessions() {
+    const hist = getHistory();
+    const list = $("sessions");
+    $("sideEmpty").hidden = hist.length > 0;
+    if (!hist.length) { list.innerHTML = ""; return; }
+    let rows = [];
+    try { rows = await rpc("iv_get_summaries", { p_codes: hist }); } catch { return; }
+    list.innerHTML = rows.map((r) => {
+      let host = "";
+      try { host = new URL(r.form_url).hostname; } catch {}
+      const progress = r.status === "failed" ? "" : `${r.done} of ${r.total} answered`;
+      return `<li><button class="session" type="button" data-code="${esc(r.code)}" aria-current="${r.code === code}">
+        <span class="t">${esc(r.form_title || host || "Application")}</span>
+        <span class="h">${esc(host)}</span>
+        <span class="m"><span class="st ${esc(r.status)}">${esc(STATUS_WORD[r.status] || r.status)}</span><span>${esc(progress)}</span></span>
+        <span class="m"><span>${esc(r.code)}</span><span>${esc(ago(r.updated_at))}</span></span>
+      </button></li>`;
+    }).join("");
+    $("sideEmpty").hidden = rows.length > 0;
+    $("appCount").textContent = rows.length ? `(${rows.length})` : "";
+  }
+
+  $("sessions").addEventListener("click", (e) => {
+    const b = e.target.closest(".session");
+    if (b) {
+      if (["active", "connecting", "ringing"].includes(callBtn.dataset.state) && b.dataset.code !== code) {
+        callStatus.textContent = "End the voice call before switching applications.";
+        callStatus.classList.add("error");
+        openDrawer(false);
+        return;
+      }
+      attach(b.dataset.code); openDrawer(false);
+    }
+  });
+  if (code) addHistory(code);
+  setInterval(refreshSessions, 5000);
+  refreshSessions();
+
+  // ---------- Live view ----------
+  async function poll() {
+    try {
+      const requestedRef = clientRef, requestedCode = code;
+      // A session created by the current call wins over a stored code from an earlier visit.
+      let view = null;
+      if (clientRef) {
+        const byRef = await rpc("iv_get_view", { p_client_ref: clientRef });
+        if (requestedRef !== clientRef || requestedCode !== code) return;
+        if (byRef.ok) { view = byRef; if (!liveCallCode) liveCallCode = byRef.code; }
+      }
+      if (!view && code) view = await rpc("iv_get_view", { p_code: code });
+      if (requestedRef !== clientRef || requestedCode !== code) return;
+      if (view && view.ok) {
+        if (!code || view.code !== code) attach(view.code);
+        render(view);
+      } else if (view && code) {
+        renderMissing();
+      }
+    } catch (e) { /* network blip: try again next tick */ }
+  }
+  setInterval(poll, POLL_MS);
+  poll();
+
+  function renderMissing() {
+    code = null;
+    lastView = null;
+    linkForm.hidden = false;
+    renderChip(null);
+    $("form").hidden = true;
+    $("empty").hidden = false;
+  }
+
+  const MARK = {
+    pending: "Needs you", todo: "Not answered", drafted: "Drafted", confirmed: "Confirmed", revised: "Changed", skipped: "Skipped", unsupported: "Can't fill by voice",
+  };
+
+  function render(v) {
+    lastView = v;
+    linkForm.hidden = v.status !== "failed";
+    if (profileKey && !v.profile_key && !["approved", "cancelled", "failed"].includes(v.status)) attachProfile(v.code);
+    renderSteps(v);
+    renderChip(v);
+    if (formSeenFor !== v.code || tab === "form") { formSeen = snapshot(v); formSeenFor = v.code; }
+    updateBadge(v);
+    renderConv();
+
+    $("empty").hidden = true;
+    $("reading").hidden = true;
+    const form = $("form");
+    form.hidden = false;
+
+    const fields = v.fields || [];
+    const host = (() => { try { return new URL(v.form_url).hostname; } catch { return v.form_url || ""; } })();
+    const gaps = fields.filter((f) => f.status === "pending" && f.missing_info);
+
+    let html = `
+      <div class="sheet-head">
+        <div>
+          <h2>${esc(v.form_title || "Application form")}</h2>
+          ${v.form_url ? `<p class="source">From <a href="${esc(v.form_url)}" target="_blank" rel="noopener noreferrer">${esc(host)}</a>, ${fields.length} question${fields.length === 1 ? "" : "s"}</p>` : ""}
+          ${v.profile_name ? `<p class="using">Using ${esc(v.profile_name)}'s profile</p>` : ""}
+        </div>
+        <div class="rev">Revision<strong>${esc(v.revision)}</strong><div class="sid">Code <b>${esc(v.code)}</b></div></div>
+      </div>`;
+
+    if (v.status === "failed") {
+      html += `<div class="close"><span class="stamp fail">Couldn't read this page</span><p>${esc(v.error || "The page had no questions to read.")}</p><p class="muted">Ask the agent to try a different public link.</p></div>`;
+      form.innerHTML = html;
+      return;
+    }
+
+    if (gaps.length && v.status !== "approved" && v.status !== "cancelled") {
+      html += `<p class="gaps">${gaps.length} answer${gaps.length === 1 ? "" : "s"} still need${gaps.length === 1 ? "s" : ""} you: ${gaps.map((g) => esc(g.label)).join(", ")}</p>`;
+    }
+
+    html += `<ol class="rows">`;
+    for (const f of fields) {
+      const text = f.answer ?? (f.status === "drafted" ? f.draft : null);
+      const key = f.field_id;
+      const changed = text && seenText[key] !== text;
+      seenText[key] = text;
+      const isDraft = f.answer == null && f.status === "drafted";
+      const markKey = f.current ? "now"
+        : f.type === "unsupported" && f.status === "pending" ? "unsupported"
+        : f.status === "pending" && !f.missing_info ? "todo"
+        : f.status;
+      const markText = f.current ? "Reviewing now" : MARK[markKey] || f.status;
+      const choices = f.options && f.options.length ? `<div class="choices">${f.type === "multi_choice" ? "Choose any" : "Choose one"}: ${f.options.map(esc).join(", ")}</div>` : "";
+      let note = "";
+      if (f.status === "pending" && f.missing_info) note = `<div class="note needs">${esc(f.missing_info)}</div>`;
+      else if (isDraft && f.evidence) note = `<div class="note">Based on: “${esc(f.evidence)}”</div>`;
+      html += `
+        <li class="row${f.current ? " current" : ""}">
+          <span class="num">${esc(f.number)}</span>
+          <div><div class="label">${esc(f.label)}${f.required ? '<span class="req" aria-label="required">*</span>' : ""}</div>${choices}</div>
+          <span class="mark ${esc(markKey)}">${esc(markText)}</span>
+          <div class="line${isDraft ? " draft" : ""}${text ? "" : " blank"}${changed ? " ink-in" : ""}">${text ? esc(text) : "&nbsp;"}</div>
+          ${note}
+        </li>`;
+    }
+    html += `</ol>`;
+    html += renderClose(v, fields);
+    form.innerHTML = html;
+
+    const copy = $("copyBtn");
+    if (copy) copy.addEventListener("click", () => copyAnswers(fields, copy));
+  }
+
+  function renderClose(v, fields) {
+    if (v.status === "approved") {
+      const prefill = prefillUrl(v, fields);
+      return `<div class="close">
+        <span class="stamp">Approved<small>Revision ${esc(v.approved_revision)}</small></span>
+        <p>${prefill ? "Your answers are ready in the form. Open it, check every answer, and press Submit yourself." : "Your answers are ready. Copy them into the application and submit it yourself."}</p>
+        <p class="muted">Nothing has been filled or submitted for you.</p>
+        <div class="actions">
+          ${prefill ? `<a class="btn primary" href="${esc(prefill)}" target="_blank" rel="noopener noreferrer">Open pre-filled form</a>` : ""}
+          <button class="btn${prefill ? "" : " primary"}" id="copyBtn" type="button">Copy answers</button>
+        </div>
+      </div>`;
+    }
+    if (v.status === "cancelled") {
+      return `<div class="close"><span class="stamp cancel">Cancelled</span><p class="muted">Nothing was filled or submitted.</p></div>`;
+    }
+    if (v.status === "previewing") {
+      return `<div class="close"><p><strong>Ready for your approval.</strong> The agent will read every answer back. Say approve, revise, or cancel.</p><p class="muted">Approving does not submit anything.</p></div>`;
+    }
+    return "";
+  }
+
+  // Google Forms accept answers in the URL; the person still opens the form and submits it.
+  function prefillUrl(v, fields) {
+    const url = v.form_url || "";
+    if (!/docs\.google\.com\/forms\//.test(url)) return null;
+    const i = url.indexOf("/viewform");
+    const base = (i >= 0 ? url.slice(0, i) : url.split("?")[0].replace(/\/$/, "")) + "/viewform";
+    const params = new URLSearchParams({ usp: "pp_url" });
+    let any = false;
+    for (const f of fields) {
+      if (!f.field_id.startsWith("entry.") || f.answer == null) continue;
+      const values = f.type === "multi_choice" ? f.answer.split(/\s*,\s*/) : [f.answer];
+      for (const val of values) { params.append(f.field_id, val); any = true; }
+    }
+    return any ? base + "?" + params.toString() : null;
+  }
+
+  async function copyAnswers(fields, btn) {
+    const text = fields.map((f) => `${f.label}\n${f.answer ?? "(left blank)"}`).join("\n\n");
+    try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+    catch { btn.textContent = "Copy failed: select the answers instead"; }
+    setTimeout(() => (btn.textContent = "Copy answers"), 2000);
+  }
+
+  function renderSteps(v) {
+    const facts = v.facts || 0;
+    const order = ["read", "learn", "draft", "review", "approve"];
+    let now = "read";
+    if (v.status === "collecting") now = facts > 0 ? "draft" : "learn";
+    else if (v.status === "reviewing" || v.status === "revising") now = "review";
+    else if (v.status === "previewing") now = "approve";
+    else if (v.status === "approved") now = "done";
+    else if (v.status === "failed") now = "read";
+    const idx = now === "done" ? order.length : order.indexOf(now);
+    document.querySelectorAll("#steps li").forEach((li, i) => {
+      li.classList.toggle("done", i < idx);
+      li.classList.toggle("now", i === idx && v.status !== "cancelled");
+      li.removeAttribute("aria-current");
+      if (i === idx) li.setAttribute("aria-current", "step");
+    });
+  }
+
+  function describe(e, fields) {
+    const p = e.payload || {};
+    const label = (id) => (fields.find((f) => f.field_id === id) || {}).label || "a question";
+    switch (e.action) {
+      case "start_session": return `Read ${p.field_count} questions from the page`;
+      case "start_session_failed": return "Couldn't read the page";
+      case "save_profile": return "Noted what you said";
+      case "draft_answers": return `Drafted ${p.drafted} answers`;
+      case "save_decision":
+        return ({ confirm: "Confirmed", revise: "Changed", skip: "Skipped" }[p.decision] || "Saved") + " " + label(p.field_id);
+      case "get_preview": return `Read back all answers (revision ${p.revision})`;
+      case "revise": return "Reopened " + label(p.field_id);
+      case "approve": return `Approved revision ${p.revision}`;
+      case "cancel": return "Cancelled";
+      default: return e.action;
+    }
+  }
+
+  renderConv();
+
+  // Optional view in the URL: ?tab=form opens the form tab, ?drawer=open shows the applications drawer.
+  const viewParams = new URLSearchParams(location.search);
+  if (viewParams.get("tab") === "form") showTab("form");
+  if (viewParams.get("drawer") === "open") openDrawer(true);
+  // An application already open on page load: show its stored conversation.
+  if (code) loadCalls();
+</script>
+</body>
+</html>

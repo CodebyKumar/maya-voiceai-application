@@ -1,0 +1,245 @@
+[
+  {
+    "name": "start_session",
+    "description": "Start a new application session from a public link: a job application form (Google Forms, Lever, any HTML form) or a job posting page. Call this as soon as the person gives a URL.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "form_url": {
+          "type": "string",
+          "description": "The full public form URL the person gave"
+        },
+        "client_ref": {
+          "type": "string",
+          "description": "The browser session reference from the system prompt. Never ask the person for it."
+        },
+        "profile_key": {
+          "type": "string",
+          "description": "The saved profile key from the system prompt, if any. Never ask the person for it."
+        }
+      },
+      "required": [
+        "form_url"
+      ]
+    },
+    "key": "custom_task",
+    "pre_call_message": "Let me open that page and read the questions. This can take a few seconds.",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "start_session",
+        "form_url": "%(form_url)s",
+        "client_ref": "%(client_ref)s",
+        "profile_key": "%(profile_key)s"
+      },
+      "headers": {}
+    }
+  },
+  {
+    "name": "save_profile",
+    "description": "Save facts the person just told you about themselves (name, contact details, experience, motivation). Call after each answer during fact gathering.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 6 character session code, letters and digits, e.g. 7UJ3DZ"
+        },
+        "facts": {
+          "type": "string",
+          "description": "What the person said, in their own words"
+        }
+      },
+      "required": [
+        "code",
+        "facts"
+      ]
+    },
+    "key": "custom_task",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "save_profile",
+        "code": "%(code)s",
+        "facts": "%(facts)s"
+      },
+      "headers": {}
+    }
+  },
+  {
+    "name": "draft_answers",
+    "description": "Draft answers for every form question from the saved facts. Call once you have gathered the main facts.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 6 character session code, letters and digits, e.g. 7UJ3DZ"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "key": "custom_task",
+    "pre_call_message": "Give me a moment to draft your answers.",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "draft_answers",
+        "code": "%(code)s"
+      },
+      "headers": {}
+    }
+  },
+  {
+    "name": "get_current",
+    "description": "Get the current question and the session state. Use it to resume with a session code, or whenever you are unsure where you are.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 6 character session code, letters and digits, e.g. 7UJ3DZ"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "key": "custom_task",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "get_current",
+        "code": "%(code)s"
+      },
+      "headers": {}
+    }
+  },
+  {
+    "name": "save_decision",
+    "description": "Save the person's decision on the current question: confirm the draft, revise it with a new answer, or skip it.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 6 character session code, letters and digits, e.g. 7UJ3DZ"
+        },
+        "field_id": {
+          "type": "string",
+          "description": "The field_id of the current question, exactly as the last tool result returned it"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "confirm",
+            "revise",
+            "skip"
+          ],
+          "description": "confirm, revise or skip"
+        },
+        "answer": {
+          "type": "string",
+          "description": "The new answer, only when decision is revise"
+        }
+      },
+      "required": [
+        "code",
+        "field_id",
+        "decision"
+      ]
+    },
+    "key": "custom_task",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "save_decision",
+        "code": "%(code)s",
+        "field_id": "%(field_id)s",
+        "decision": "%(decision)s",
+        "answer": "%(answer)s"
+      },
+      "headers": {}
+    }
+  },
+  {
+    "name": "get_preview",
+    "description": "Get every saved answer and the current revision number, to read back before approval.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 6 character session code, letters and digits, e.g. 7UJ3DZ"
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "key": "custom_task",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "get_preview",
+        "code": "%(code)s"
+      },
+      "headers": {}
+    }
+  },
+  {
+    "name": "decide",
+    "description": "Record the final decision after reading the preview: approve the exact revision, revise one question, or cancel. Only approve after the person clearly says approve.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The 6 character session code, letters and digits, e.g. 7UJ3DZ"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approve",
+            "revise",
+            "cancel"
+          ],
+          "description": "approve, revise or cancel"
+        },
+        "revision": {
+          "type": "integer",
+          "description": "The revision number from the latest get_preview, required to approve"
+        },
+        "field_id": {
+          "type": "string",
+          "description": "Only for revise: the field_id of the question to change"
+        }
+      },
+      "required": [
+        "code",
+        "decision"
+      ]
+    },
+    "key": "custom_task",
+    "value": {
+      "method": "POST",
+      "url": "https://voiceai-kk.app.n8n.cloud/webhook/interviewer",
+      "param": {
+        "action": "decide",
+        "code": "%(code)s",
+        "decision": "%(decision)s",
+        "revision": "%(revision)s",
+        "field_id": "%(field_id)s"
+      },
+      "headers": {}
+    }
+  }
+]
