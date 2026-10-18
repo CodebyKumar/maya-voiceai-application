@@ -48,7 +48,7 @@ def payload():
                     },
                     "synthesizer": {
                         "provider": "elevenlabs",
-                        "provider_config": {"voice": "Angelica", "voice_id": "IkSv4tkouLJ6kYsQA7XD", "model": "eleven_turbo_v2_5"},
+                        "provider_config": {"voice": "Angelica", "voice_id": "IkSv4tkouLJ6kYsQA7XD", "model": "eleven_turbo_v2_5", "speed": 1.08},
                         "stream": True,
                         "buffer_size": 250,
                         "audio_format": "wav",
@@ -114,6 +114,7 @@ def main():
         else:
             config["tasks"][0]["task_config"]["incremental_delay"] = 300
             config["tasks"][0]["tools_config"]["transcriber"]["endpointing"] = 200
+            config["tasks"][0]["tools_config"]["synthesizer"]["provider_config"]["speed"] = 1.08
         body = {"agent_config": config, "agent_prompts": prompts}
         method = "PUT"
     elif "--update" in sys.argv:
