@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Application Interview</title>
+<title>Maya Apply — Your application companion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,8 +58,8 @@
     padding: 28px 24px; display: grid; align-content: start; gap: 22px;
     border-right: 1px solid var(--rule-soft); background: var(--paper);
   }
-  .brand { display: grid; gap: 2px; }
-  .brand strong { font-size: 18px; letter-spacing: -.01em; }
+  .brand { display: grid; gap: 3px; }
+  .brand strong { font-size: 21px; letter-spacing: -.035em; }
   .brand span { font-size: 14px; color: var(--graphite); }
   .stage { width: 100%; max-width: 900px; margin: 0 auto; padding: 24px 32px 64px; display: grid; gap: 22px; align-content: start; }
   .stage-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
@@ -211,14 +211,20 @@
   .rev .sid b { color: var(--ink); letter-spacing: .12em; }
 
   /* Profile card */
-  .profile { display: grid; gap: 10px; padding: 16px; border-radius: 10px; background: var(--sheet); border: 1px solid var(--rule-soft); }
-  .profile h2 { margin: 0; font-size: 15px; font-weight: 700; }
+  .profile { display: grid; gap: 15px; padding: 20px; border-radius: 16px; background: var(--sheet); border: 1px solid var(--rule-soft); box-shadow: var(--shadow); min-width: 0; }
+  .profile h2 { margin: 0; font-size: 14px; font-weight: 700; }
+  .profile-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .profile-kicker { color: var(--graphite); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  #profileBody { display: grid; gap: 14px; min-width: 0; }
   .profile p { margin: 0; font-size: 14px; color: var(--graphite); }
   .drop {
-    display: grid; place-items: center; text-align: center; gap: 2px;
-    padding: 14px; border: 1.5px dashed var(--rule); border-radius: 8px; cursor: pointer;
+    display: grid; place-items: center; text-align: center; gap: 5px;
+    padding: 22px 12px; border: 1.5px dashed var(--rule); border-radius: 12px; cursor: pointer; background: var(--now-wash);
     font-size: 14px; color: var(--graphite);
   }
+  .drop:hover { border-color: var(--pen); }
+  .drop-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: var(--sheet); color: var(--pen); font-size: 22px; font-weight: 600; }
+  .drop span:last-child { font-size: 12px; }
   .drop strong { color: var(--ink); }
   .drop.over { border-color: var(--pen); background: var(--now-wash); }
   .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
@@ -229,18 +235,25 @@
   }
   .links button { border: 0; background: none; cursor: pointer; color: var(--graphite); font-size: 18px; line-height: 1; padding: 2px 6px; }
   .add-link { display: flex; gap: 6px; }
-  .who { display: grid; gap: 2px; }
+  .profile-identity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .profile-avatar { flex: none; width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: var(--now-wash); color: var(--pen); font-weight: 700; font-size: 16px; }
+  .who { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
   .who strong { font-size: 17px; }
   .who span { font-size: 14px; color: var(--graphite); }
+  .profile-section { display: grid; gap: 8px; }
+  .profile-label { font-size: 11px; font-weight: 700; color: var(--graphite); text-transform: uppercase; letter-spacing: .07em; }
+  .profile-facts { display: flex; flex-wrap: wrap; gap: 6px 10px; font-size: 13px; color: var(--graphite); }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .chips span { font-size: 12.5px; padding: 2px 9px; border-radius: 999px; background: var(--paper); border: 1px solid var(--rule-soft); }
   .srcs { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 13.5px; }
   .srcs li { display: flex; gap: 8px; }
   .srcs .ok { color: var(--stamp); }
   .srcs .no { color: var(--gap); }
-  .profile details { font-size: 14px; }
+  .profile details { font-size: 14px; border-top: 1px solid var(--rule-soft); padding-top: 12px; overflow-wrap: anywhere; }
   .profile summary { cursor: pointer; color: var(--pen); font-weight: 600; }
   .profile details ul { margin: 6px 0 0 18px; padding: 0; color: var(--graphite); }
+  .profile details .srcs { list-style: none; margin: 6px 0 0; }
+  .profile-details { display: grid; gap: 12px; padding-top: 12px; }
   .profile .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
   .using { margin: 6px 0 0; font-size: 14px; color: var(--stamp); }
 
@@ -351,9 +364,9 @@
 <body>
 <div class="app">
   <aside class="left" aria-label="Your profile">
-    <div class="brand"><strong>Application interview</strong><span>Talk it through with Maya. Review your answers before you submit.</span></div>
+    <div class="brand"><strong>Maya Apply</strong><span>Your application companion</span></div>
     <section class="profile" id="profile" aria-labelledby="profileTitle">
-      <h2 id="profileTitle">Your profile</h2>
+      <div class="profile-header"><h2 id="profileTitle">Your profile</h2><span class="profile-kicker">About you</span></div>
       <div id="profileBody"></div>
     </section>
   </aside>
@@ -403,7 +416,7 @@
         <textarea id="chatInput" rows="2" maxlength="4000" aria-label="Message Maya" placeholder="Type a message to Maya…" required></textarea>
         <button class="btn primary" id="chatSend" type="submit">Send</button>
       </form>
-      <p class="chat-hint" id="chatHint" role="status">Open an application above to start chatting.</p>
+      <p class="chat-hint" id="chatHint" role="status"></p>
     </section>
 
     <section class="panel sheet" id="panelForm" role="tabpanel" aria-labelledby="tabForm" aria-live="polite" hidden>
@@ -436,6 +449,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/gh/bolna-ai/web-call@v3.0.0/dist/bolna-web-call.min.js"></script>
+<script src="/profile-view.js"></script>
 <script>
   // Public by design: only the read-only iv_get_view function is used from the page.
   const SUPABASE_RPC = "https://pqkpwzsluzubzugpytrv.supabase.co/rest/v1/rpc/";
@@ -861,10 +875,10 @@
 
     if (profileMode === "empty" || profileMode === "error") {
       body.innerHTML = `
-        <p>Add your resume once. Every application then starts with what it already knows, so the call only covers what's new.</p>
+        <p>Add your resume once so Maya can focus on what's missing.</p>
         <label class="drop" id="drop">
           <input type="file" id="resumeFile" accept=".pdf,.docx,.txt,.md,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain">
-          <strong>Upload resume</strong><span>PDF, Word or text. Drop it here or click.</span>
+          <span class="drop-icon" aria-hidden="true">↑</span><strong>Upload your resume</strong><span>PDF, Word or text · up to 5 MB</span>
         </label>
         ${profileMode === "error" ? `<p class="hint error">${esc(profileError)}</p>` : ""}`;
       wireDrop();
@@ -874,12 +888,13 @@
     if (profileMode === "prepare" || profileMode === "building") {
       const busy = profileMode === "building";
       body.innerHTML = `
-        <p>${draft.fileName ? `<strong>${esc(draft.fileName)}</strong> read. ` : ""}Links to read too${draft.links.length ? ", found in your resume" : ""}:</p>
+        <p>${draft.fileName ? `<strong>${esc(draft.fileName)}</strong> is ready.` : "Add or update your links."}</p>
+        <span class="profile-label">Your links · optional</span>
         <ul class="links" id="linkList">${draft.links.map((u, i) => `
           <li><input value="${esc(u)}" data-i="${i}" aria-label="Link ${i + 1}" ${busy ? "disabled" : ""}><button type="button" data-remove="${i}" aria-label="Remove link" ${busy ? "disabled" : ""}>×</button></li>`).join("")}
         </ul>
         <div class="add-link"><input id="addLink" placeholder="Add LinkedIn, GitHub or portfolio link" ${busy ? "disabled" : ""}><button class="btn small" type="button" id="addLinkBtn" ${busy ? "disabled" : ""}>Add</button></div>
-        <p>LinkedIn usually needs a login, so it may not be readable. Your resume covers the same facts.</p>
+        <p>Some sites, including LinkedIn, may require a login.</p>
         <div class="row-actions">
           <button class="btn primary" type="button" id="buildBtn" ${busy ? "disabled" : ""}>${busy ? "Building profile…" : "Build profile"}</button>
           ${busy ? "" : `<button class="btn" type="button" id="cancelPrep">Cancel</button>`}
@@ -891,24 +906,28 @@
 
     // ready
     const d = profile.data || {};
-    const roles = (d.experience || []).length;
-    const skills = d.skills || [];
-    const facts = [d.location, d.total_years_experience != null ? `${d.total_years_experience} years experience` : ""].filter(Boolean).join(", ");
+    const clean = MayaProfileView(profile);
+    const initials = String(d.name || "").trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "✦";
+    const years = d.total_years_experience != null && !/\b\d+(?:\.\d+)?\s*(?:\+\s*)?(?:years?|yrs?)\b/i.test(d.headline || "") ? `${d.total_years_experience} years' experience` : "";
+    const facts = [d.location, years].filter(Boolean);
+    const roleLines = clean.experience.map((e) => [e.title, e.company].filter(Boolean).join(", ") + (e.start ? ` (${e.start} to ${e.end || "now"})` : ""));
+    const educationLines = clean.education.map((e) => [e.degree, e.institution, e.year].filter(Boolean).join(", "));
+    const detailsGroup = (label, lines) => lines.length ? `<div><span class="profile-label">${esc(label)}</span><ul>${lines.map((line) => `<li>${esc(line)}</li>`).join("")}</ul></div>` : "";
     body.innerHTML = `
-      <div class="who"><strong>${esc(d.name || "Unnamed profile")}</strong>${d.headline ? `<span>${esc(d.headline)}</span>` : ""}${facts ? `<span>${esc(facts)}</span>` : ""}</div>
-      ${skills.length ? `<div class="chips">${skills.slice(0, 8).map((x) => `<span>${esc(x)}</span>`).join("")}${skills.length > 8 ? `<span>+${skills.length - 8} more</span>` : ""}</div>` : ""}
-      <ul class="srcs">${(profile.sources || []).map((src) => {
-        const [cls, word] = SOURCE_STATUS[src.status] || ["no", src.status];
-        return `<li><span class="${cls}">${cls === "ok" ? "✓" : "–"}</span><span>${esc(SOURCE_NAME[src.type] || src.type)}: ${esc(word)}</span></li>`;
-      }).join("")}</ul>
-      <details><summary>What it knows</summary>
-        ${d.summary ? `<p style="margin-top:6px">${esc(d.summary)}</p>` : ""}
-        <ul>
-          ${d.email ? `<li>${esc(d.email)}</li>` : ""}${d.phone ? `<li>${esc(d.phone)}</li>` : ""}
-          ${(d.experience || []).map((e) => `<li>${esc([e.title, e.company].filter(Boolean).join(", "))}${e.start ? ` (${esc(e.start)} to ${esc(e.end || "now")})` : ""}</li>`).join("")}
-          ${(d.education || []).map((e) => `<li>${esc([e.degree, e.institution, e.year].filter(Boolean).join(", "))}</li>`).join("")}
-        </ul>
-      </details>
+      <div class="profile-identity"><div class="profile-avatar" aria-hidden="true">${esc(initials)}</div><div class="who"><strong>${esc(d.name || "Your profile")}</strong>${d.headline ? `<span>${esc(d.headline)}</span>` : ""}</div></div>
+      ${facts.length ? `<div class="profile-facts">${facts.map((fact) => `<span>${esc(fact)}</span>`).join("")}</div>` : ""}
+      ${clean.skills.length ? `<div class="profile-section"><span class="profile-label">Skills</span><div class="chips">${clean.skills.slice(0, 8).map((skill) => `<span>${esc(skill)}</span>`).join("")}${clean.skills.length > 8 ? `<span>+${clean.skills.length - 8} more</span>` : ""}</div></div>` : ""}
+      <details><summary>View profile details</summary><div class="profile-details">
+        ${detailsGroup("Contact", clean.contacts)}
+        ${detailsGroup("Experience", roleLines)}
+        ${detailsGroup("Education", educationLines)}
+        ${detailsGroup("More skills", clean.skills.slice(8))}
+        ${clean.sources.length ? `<div><span class="profile-label">Sources</span><ul class="srcs">${clean.sources.map((src) => {
+          const [cls, word] = SOURCE_STATUS[src.status] || ["no", src.status || "unavailable"];
+          let host = ""; try { if (src.url) { const url = new URL(src.url); host = url.hostname.replace(/^www\./, "") + url.pathname.replace(/\/$/, ""); } } catch {}
+          return `<li><span class="${cls}" aria-hidden="true">${cls === "ok" ? "✓" : "–"}</span><span>${esc(SOURCE_NAME[src.type] || src.type || "Source")}${host ? ` · ${esc(host)}` : ""}: ${esc(word)}</span></li>`;
+        }).join("")}</ul></div>` : ""}
+      </div></details>
       <div class="row-actions">
         <button class="btn small" type="button" id="updateProfile">Update</button>
         <button class="btn small" type="button" id="forgetProfile">Remove</button>
