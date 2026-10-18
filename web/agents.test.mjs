@@ -76,3 +76,30 @@ test("after saving an answer the voice agent is directed to a remaining question
   assert.equal(result.next_question, "Why this role?");
   assert.equal(modelHistory[0].text, "Earlier detail");
 });
+
+test("voice turns fetch state and history concurrently and avoid a second state read when nothing was saved", async () => {
+  let active = 0, peak = 0, reads = 0;
+  const getData = async (value) => {
+    active++; peak = Math.max(peak, active);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    active--;
+    return value;
+  };
+  const webhook = async ({ action }) => {
+    assert.equal(action, "get_current"); reads++;
+    return getData({ ok: true, status: "reviewing", form: { still_needed: [{ field_id: "role", label: "Role" }] } });
+  };
+  const rpc = async () => getData([]);
+  const modelOptions = [];
+  const fetchImpl = async (_url, options) => {
+    const body = JSON.parse(options.body);
+    modelOptions.push(body);
+    return { ok: true, json: async () => ({ choices: [{ message: { content: body.messages[0].content.includes("extract application") ? '{"answers":[]}' : '{"field_id":"role","next_question":"What interests you?"}' } }] }) };
+  };
+  const result = await createAgents({ apiKey: "test", webhook, rpc, fetchImpl }).analyze({ code: "ABC123", message: "Tell me more." });
+  assert.equal(result.next_question, "What interests you?");
+  assert.equal(reads, 1);
+  assert.equal(peak, 2);
+  assert.equal(modelOptions.length, 2);
+  assert.ok(modelOptions.every((options) => options.reasoning_effort === "low"));
+});

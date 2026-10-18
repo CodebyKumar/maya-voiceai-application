@@ -46,7 +46,18 @@ async function callRpc(fn, args) {
   return r.json();
 }
 
-const agents = createAgents({ apiKey: env.GROQ_API_KEY, model: env.GROQ_MODEL, webhook: callWebhook, rpc: callRpc });
+// These operations are already database RPCs in the n8n workflow. Calling them
+// directly avoids an extra network round trip for every voice turn.
+async function voiceBackend(body) {
+  if (body.action === "get_current") return callRpc("iv_get_current", { p_code: body.code });
+  if (body.action === "save_profile") return callRpc("iv_save_profile", { p_code: body.code, p_facts: body.facts || "" });
+  if (body.action === "save_decision") return callRpc("iv_save_decision", {
+    p_code: body.code, p_field_id: body.field_id || "", p_decision: body.decision || "", p_answer: body.answer || null,
+  });
+  return callWebhook(body);
+}
+
+const agents = createAgents({ apiKey: env.GROQ_API_KEY, model: env.GROQ_MODEL, webhook: voiceBackend, rpc: callRpc });
 const chat = createChatHandler({ webhook: callWebhook, rpc: callRpc, promptPath: join(WEB, "..", "bolna", "prompt.md"), agents });
 
 async function jsonBody(req, maxSize = 65536) {
@@ -220,7 +231,7 @@ export async function handler(req, res) {
       const body = await jsonBody(req);
       const code = String(body.code || "").trim().toUpperCase();
       if (!/^[A-Z0-9]{6}$/.test(code)) return sendJson(res, 400, { ok: false, error: "Invalid application code." });
-      const state = prioritizeForm(await callWebhook({ action: "get_current", code }));
+      const state = prioritizeForm(await voiceBackend({ action: "get_current", code }));
       if (!state.ok) return sendJson(res, 400, state);
       delete state.current;
       state.next_step = "Resume drafts are already filled; do not ask for those details again. Focus on form.still_needed, especially role questions. Check drafts only after the remaining questions, before final approval.";

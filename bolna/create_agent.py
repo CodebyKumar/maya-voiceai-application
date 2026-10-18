@@ -60,21 +60,21 @@ def payload():
                         "stream": True,
                         "encoding": "linear16",
                         "sampling_rate": 16000,
-                        "endpointing": 250,
+                        "endpointing": 200,
                     },
                     "input": {"provider": "plivo", "format": "wav"},
                     "output": {"provider": "plivo", "format": "wav"},
                     "api_tools": {"tools": tool_definitions(), "tools_params": tool_params()},
                 },
                 # Generous silence and call limits: drafting can take ~7s and a review takes a few minutes.
-                # Two spoken words cut the agent off (a lone "yeah" does not), it waits 500 ms
+                # Two spoken words cut the agent off (a lone "yeah" does not), it waits 300 ms
                 # before replying so pauses are not treated as the end of an answer, and it
                 # backchannels ("mm-hmm") during long answers.
                 "task_config": {
                     "call_terminate": 600,
                     "hangup_after_silence": 30,
                     "number_of_words_for_interruption": 2,
-                    "incremental_delay": 500,
+                    "incremental_delay": 300,
                     "backchanneling": True,
                     "backchanneling_message_gap": 5,
                     "backchanneling_start_delay": 5,
@@ -92,8 +92,9 @@ def main():
     if "--dry-run" in sys.argv:
         print(json.dumps(body, indent=2))
         return
-    if "--update-tools" in sys.argv:
-        agent_id = sys.argv[sys.argv.index("--update-tools") + 1]
+    if "--update-tools" in sys.argv or "--tune-latency" in sys.argv:
+        mode = "--update-tools" if "--update-tools" in sys.argv else "--tune-latency"
+        agent_id = sys.argv[sys.argv.index(mode) + 1]
         url = f"https://api.bolna.ai/v2/agent/{agent_id}"
         get = urllib.request.Request(url, headers={"Authorization": "Bearer " + load_key()})
         with urllib.request.urlopen(get, timeout=30) as response:
@@ -102,13 +103,17 @@ def main():
         # voice, telephony settings and existing tools remain intact.
         fields = ("agent_name", "agent_welcome_message", "agent_type", "webhook_url", "tasks", "calling_guardrails", "webhook_headers", "webhook_config", "ingest_source_config", "call_summary_enabled", "custom_analytics", "sip_headers", "dispositions")
         config = {name: live[name] for name in fields if name in live}
-        api_tools = config["tasks"][0]["tools_config"]["api_tools"]
-        new_tool = next(tool for tool in tool_definitions() if tool["name"] == "voice_turn")
-        api_tools["tools"] = [tool for tool in api_tools["tools"] if tool.get("name") != "voice_turn"] + [new_tool]
-        api_tools["tools_params"]["voice_turn"] = tool_params()["voice_turn"]
-        api_tools["tools_params"]["get_current"]["url"] = os.environ.get("FORM_STATE_URL", tool_params()["voice_turn"]["url"].removesuffix("/voice-turn") + "/form-state")
         prompts = live.get("agent_prompts") or {}
-        prompts.setdefault("task_1", {})["system_prompt"] = (ROOT / "bolna" / "prompt.md").read_text()
+        if mode == "--update-tools":
+            api_tools = config["tasks"][0]["tools_config"]["api_tools"]
+            new_tool = next(tool for tool in tool_definitions() if tool["name"] == "voice_turn")
+            api_tools["tools"] = [tool for tool in api_tools["tools"] if tool.get("name") != "voice_turn"] + [new_tool]
+            api_tools["tools_params"]["voice_turn"] = tool_params()["voice_turn"]
+            api_tools["tools_params"]["get_current"]["url"] = os.environ.get("FORM_STATE_URL", tool_params()["voice_turn"]["url"].removesuffix("/voice-turn") + "/form-state")
+            prompts.setdefault("task_1", {})["system_prompt"] = (ROOT / "bolna" / "prompt.md").read_text()
+        else:
+            config["tasks"][0]["task_config"]["incremental_delay"] = 300
+            config["tasks"][0]["tools_config"]["transcriber"]["endpointing"] = 200
         body = {"agent_config": config, "agent_prompts": prompts}
         method = "PUT"
     elif "--update" in sys.argv:
