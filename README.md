@@ -2,6 +2,7 @@
 
 A voice agent that turns a job application form (or a job posting) into answers you have reviewed and approved.
 Nothing is ever submitted for you. Full design: [PROJECT.md](PROJECT.md). Build plan: [TODO.md](TODO.md).
+System components and diagrams: [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md).
 
 ## Run the interview page
 
@@ -17,6 +18,12 @@ The right sidebar lists every application this browser started or opened; click 
 **Your profile:** upload a resume (PDF, Word or text) and add links (LinkedIn, GitHub, portfolio). The page extracts the text and hidden links in the browser, n8n reads the links and builds a reusable profile, and every application started afterwards uses it, so the call only asks role-specific questions and real gaps. A fictional sample is in `samples/sample_resume.pdf`. Open a saved profile with `?profile=KEY`.
 The right side fills in live: questions, drafts (with what they were based on), gaps, your confirmations and changes, the revision number, and the approval stamp.
 After approval, Google Forms get an **Open pre-filled form** button (you check it and press Submit yourself); other forms get **Copy answers**.
+
+For a compact six-field demo form, run `createVoiceAIDemoForm` from
+[demo_application_form.gs](demo_application_form.gs). The first four fields
+(name, email, technical skills, and relevant experience) are designed to be
+filled from the resume. Maya collects the final two fields (motivation and
+start date) through the interview.
 
 Needs `BOLNA_API_KEY` in `.env` (the server mints short-lived call sessions so the key never reaches the browser) and the n8n workflow **Voice Interviewer API** to be active.
 A session can also be opened directly with `http://localhost:8787/?code=ABC123`.

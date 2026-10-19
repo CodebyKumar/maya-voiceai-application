@@ -137,3 +137,19 @@ test("preview includes the exact revision and all returned answers", async () =>
   assert.match(result.reply, /Choice: B/);
   assert.equal(count, 1);
 });
+
+test("a yes to a lone consent checkbox saves that checkbox", async () => {
+  let modelCalls = 0;
+  const actions = [];
+  const rpc = async (fn) => fn === "iv_get_calls" ? [] : { ok: true };
+  const terms = { field_id: "termsConditions", label: "I accept the Terms and conditions", type: "multi_choice", options: ["checkbox"], required: false };
+  const webhook = async (body) => {
+    actions.push(body);
+    if (body.action === "get_current") return { ok: true, status: "reviewing", revision: 0, form: { from_resume: [], still_needed: [terms], done: [] } };
+    if (body.action === "chat") return { ok: true, text: JSON.stringify(modelCalls++ ? { reply: "Done, accepted.", actions: [] } : { reply: "", actions: [{ action: "save_decision", field_id: "termsConditions", decision: "revise", answer: "checkbox" }] }) };
+    if (body.action === "save_decision") return { ok: true };
+    throw new Error("Unexpected action");
+  };
+  await createChatHandler({ webhook, rpc, promptPath })({ code: "ABC123", message: "yes" });
+  assert.ok(actions.some((a) => a.action === "save_decision" && a.field_id === "termsConditions" && a.answer === "checkbox"));
+});

@@ -103,3 +103,14 @@ test("voice turns fetch state and history concurrently and avoid a second state 
   assert.equal(modelOptions.length, 2);
   assert.ok(modelOptions.every((options) => options.reasoning_effort === "low"));
 });
+
+test("a prose reply from the interview gateway is used instead of failing as busy", async () => {
+  const webhook = async (body) => {
+    assert.equal(body.action, "chat");
+    assert.ok(body.input, "the gateway reads the data from input");
+    return { ok: true, text: "Would you like marketing emails from Randstad?" };
+  };
+  const fetchImpl = async () => ({ ok: false, status: 429, headers: { get: () => null } });
+  const result = await createAgents({ apiKey: "test", webhook, fetchImpl }).complete("Return JSON", { a: 1 });
+  assert.equal(result.reply, "Would you like marketing emails from Randstad?");
+});

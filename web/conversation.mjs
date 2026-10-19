@@ -16,6 +16,18 @@ export function isContactField(field) {
   return /\b(email|e-mail|phone|telephone|mobile|contact|address|linkedin|portfolio)\b/i.test(`${field.label || ""} ${field.type || ""}`);
 }
 
+// A lone checkbox ("I accept the terms") is read as a choice with one option, so the
+// person's yes or no answers it: yes selects the option, no skips it when it is optional.
+export function checkboxAnswer(field, message) {
+  if (!field || !/choice/.test(field.type || "") || !Array.isArray(field.options) || field.options.length !== 1) return null;
+  const text = String(message || "").toLowerCase();
+  const no = /\b(no|nope|nah|don't|dont|do not|not|decline|rather not)\b/.test(text);
+  const yes = /\b(yes|yeah|yep|yup|sure|ok|okay|i do|accept|agree|consent|fine|go ahead)\b/.test(text);
+  if (yes && !no) return { decision: "revise", answer: field.options[0] };
+  if (no && !yes && !field.required) return { decision: "skip" };
+  return null;
+}
+
 export function prioritizeForm(state) {
   if (!state?.form) return state;
   const form = state.form;

@@ -15,18 +15,7 @@ LLM_MODEL = "gpt-4o-mini"
 
 EXTRACT_INSTRUCTIONS = (HERE / "extract_instructions.txt").read_text().strip()
 
-DRAFT_INSTRUCTIONS = (
-    "You draft answers for a job application form on behalf of an applicant. "
-    "Use ONLY facts stated in the applicant notes. Never invent or assume anything. "
-    "For every field return: field_id; draft (the answer text, or null if the notes do not contain it); "
-    "evidence (a short quote from the notes the draft is based on, or null); "
-    "missing_info (if draft is null, a short plain question to ask the applicant, otherwise null). "
-    "For single_choice fields the draft must be exactly one of the options. "
-    "For multi_choice fields the draft must be options separated by commas. "
-    "For email, phone and url fields copy the value exactly as given. "
-    "Skip nothing: return one entry per field. "
-    'Reply with JSON only, no markdown, shaped {"drafts":[{"field_id":"","draft":null,"evidence":null,"missing_info":null}]}.'
-)
+DRAFT_INSTRUCTIONS = (HERE / "draft_instructions.txt").read_text().strip()
 
 
 def js(name):
@@ -189,7 +178,7 @@ const getSession = node({{
     name: 'Load Session (Supabase)',
     parameters: {{
       method: 'POST',
-      url: '{SUPABASE_RPC}iv_get_session',
+      url: '{SUPABASE_RPC}iv_get_view',
       {rpc_headers()},
       sendBody: true,
       contentType: 'json',
@@ -199,7 +188,7 @@ const getSession = node({{
     }},
     position: [680, 300]
   }},
-  output: [{{ ok: true, code: 'ABC123', form_title: 'Job Application', profile: {{ notes: ['Name Asha Rao'] }}, fields: [] }}]
+  output: [{{ ok: true, code: 'ABC123', form_title: 'Job Application', profile: {{ notes: ['Name Asha Rao'] }}, resume_profile: {{}}, fields: [] }}]
 }});
 
 const draftAnswers = node({{
@@ -211,7 +200,7 @@ const draftAnswers = node({{
       resource: 'text',
       operation: 'response',
       modelId: {{ __rl: true, mode: 'id', value: '{LLM_MODEL}' }},
-      responses: {{ values: [{{ type: 'text', role: 'system', content: {json.dumps(DRAFT_INSTRUCTIONS)} }}, {{ type: 'text', role: 'user', content: expr('{{{{ JSON.stringify({{ form_title: $json.form_title, applicant_notes: ($json.profile || {{}}).notes || [], fields: ($json.fields || []).map(f => ({{ field_id: f.field_id, label: f.label, type: f.type, required: f.required, options: f.options }})) }}) }}}}') }}] }},
+      responses: {{ values: [{{ type: 'text', role: 'system', content: {json.dumps(DRAFT_INSTRUCTIONS)} }}, {{ type: 'text', role: 'user', content: expr('{{{{ JSON.stringify({{ form_title: $json.form_title, applicant_notes: ($json.profile || {{}}).notes || [], resume_profile: $json.resume_profile || null, fields: ($json.fields || []).map(f => ({{ field_id: f.field_id, label: f.label, type: f.type, required: f.required, options: f.options }})) }}) }}}}') }}] }},
       simplify: true,
       options: {{ maxTokens: 3000 }}
     }},
